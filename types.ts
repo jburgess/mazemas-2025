@@ -5,6 +5,7 @@ export interface MazeConfig {
   difficulty: number; // 1-5
   cornerRounding: boolean; // boolean
   seed: number;
+  holeRadius: number; // radius of center hole and entry hole in mm
 }
 
 export interface Point {

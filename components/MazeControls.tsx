@@ -120,6 +120,26 @@ const MazeControls: React.FC<MazeControlsProps> = ({
             />
           </div>
 
+          {/* Hole Radius */}
+          <div className="space-y-2">
+            <div className="flex justify-between">
+              <label className="text-sm font-medium text-gray-300">Hole Radius (Entry & Center)</label>
+              <span className="text-sm text-emerald-400">{config.holeRadius}mm</span>
+            </div>
+            <input
+              type="range"
+              min="2"
+              max="30"
+              step="0.5"
+              value={config.holeRadius}
+              onChange={(e) => handleChange('holeRadius', parseFloat(e.target.value))}
+              className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-emerald-500"
+            />
+            <p className="text-xs text-gray-500">
+                Size of the center goal hole and entry hole.
+            </p>
+          </div>
+
           {/* Difficulty */}
           <div className="space-y-2">
             <div className="flex justify-between">

@@ -7,12 +7,13 @@ import { generateCenterPiece, analyzeMaze } from './services/geminiService';
 import { X } from 'lucide-react';
 
 const DEFAULT_CONFIG: MazeConfig = {
-  diameter: 300,
-  wallWidth: 4,
-  corridorWidth: 12,
-  difficulty: 3,
+  diameter: 290,
+  wallWidth: 11,
+  corridorWidth: 14,
+  difficulty: 5,
   cornerRounding: true,
   seed: Math.floor(Math.random() * 100000),
+  holeRadius: 12, // radius of entry and center holes in mm
 };
 
 function App() {

@@ -29,10 +29,10 @@ const MazeViewer: React.FC<MazeViewerProps> = ({
   const radius = config.diameter / 2;
   const halfView = viewBoxSize / 2;
 
-  // Calculate entrance point on the exact rim of the disk
-  const startAngle = Math.atan2(data.startPoint.y, data.startPoint.x);
-  const entranceEdgeX = radius * Math.cos(startAngle);
-  const entranceEdgeY = radius * Math.sin(startAngle);
+  // Calculate entry hole position - on the outer ring, not protruding past the maze boundary
+  // The entry hole center should be at the start point (which is on the outermost corridor ring)
+  const entryHoleX = data.startPoint.x;
+  const entryHoleY = data.startPoint.y;
 
   const handleDownloadSVG = () => {
     if (!svgRef.current) return;
@@ -41,7 +41,7 @@ const MazeViewer: React.FC<MazeViewerProps> = ({
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `orbital_maze_${config.diameter}mm.svg`;
+    link.download = `orbital_maze_${config.diameter}mm_seed${config.seed}.svg`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -57,18 +57,17 @@ const MazeViewer: React.FC<MazeViewerProps> = ({
     try {
         setExportProgress(20);
 
-        // Create entrance path string
-        const entrancePath = `M ${data.startPoint.x} ${data.startPoint.y} L ${entranceEdgeX} ${entranceEdgeY}`;
-
         // Use Clipper.js for robust path offsetting and boolean union
+        // No entrance path - maze is closed, entry is via hole
         const joinType = config.cornerRounding ? 'round' : 'miter';
         const outlines = createMazeOutline(
             pathD,
-            entrancePath,
+            '', // No entrance path extending to edge
             config.corridorWidth,
             radius,
-            config.corridorWidth,
-            joinType
+            config.holeRadius,
+            joinType,
+            { x: entryHoleX, y: entryHoleY } // Entry hole position
         );
 
         setExportProgress(80);
@@ -89,6 +88,9 @@ const MazeViewer: React.FC<MazeViewerProps> = ({
   <!-- Center hole -->
   <path d="${outlines.centerHole}" fill="none" stroke="#000000" stroke-width="0.1"/>
 
+  <!-- Entry hole -->
+  <path d="${outlines.entryHole}" fill="none" stroke="#000000" stroke-width="0.1"/>
+
 </svg>`;
 
         setExportProgress(95);
@@ -97,7 +99,7 @@ const MazeViewer: React.FC<MazeViewerProps> = ({
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
-        link.download = `orbital_maze_${config.diameter}mm_outlined.svg`;
+        link.download = `orbital_maze_${config.diameter}mm_seed${config.seed}_outlined.svg`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -123,18 +125,17 @@ const MazeViewer: React.FC<MazeViewerProps> = ({
     try {
         setExportProgress(20);
 
-        // Create entrance path string
-        const entrancePath = `M ${data.startPoint.x} ${data.startPoint.y} L ${entranceEdgeX} ${entranceEdgeY}`;
-
         // Use Clipper.js for robust path offsetting and boolean union
+        // No entrance path - maze is closed, entry is via hole
         const joinType = config.cornerRounding ? 'round' : 'miter';
         const outlines = createMazeOutline(
             pathD,
-            entrancePath,
+            '', // No entrance path extending to edge
             config.corridorWidth,
             radius,
-            config.corridorWidth,
-            joinType
+            config.holeRadius,
+            joinType,
+            { x: entryHoleX, y: entryHoleY } // Entry hole position
         );
 
         setExportProgress(60);
@@ -152,7 +153,7 @@ const MazeViewer: React.FC<MazeViewerProps> = ({
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
-        link.download = `orbital_maze_${config.diameter}mm_cut.dxf`;
+        link.download = `orbital_maze_${config.diameter}mm_seed${config.seed}_cut.dxf`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -170,7 +171,7 @@ const MazeViewer: React.FC<MazeViewerProps> = ({
   };
 
   // Generate DXF file from SVG path data (R12 format for maximum compatibility)
-  const generateDXF = (outlines: { corridors: string; boundary: string; centerHole: string }, diameter: number): string => {
+  const generateDXF = (outlines: { corridors: string; boundary: string; centerHole: string; entryHole: string }, diameter: number): string => {
     let dxf = '';
 
     // Helper to add a line to DXF
@@ -304,6 +305,7 @@ const MazeViewer: React.FC<MazeViewerProps> = ({
     addPathToDXF(outlines.corridors, 'CORRIDORS');
     addPathToDXF(outlines.boundary, 'BOUNDARY');
     addPathToDXF(outlines.centerHole, 'BOUNDARY');
+    addPathToDXF(outlines.entryHole, 'BOUNDARY');
 
     add(0, 'ENDSEC');
 
@@ -360,19 +362,19 @@ const MazeViewer: React.FC<MazeViewerProps> = ({
               strokeLinejoin={config.cornerRounding ? "round" : "miter"}
             />
 
-            {/* 3. Entrance / Start Indication */}
-            <path
-                d={`M ${data.startPoint.x} ${data.startPoint.y} L ${entranceEdgeX} ${entranceEdgeY}`}
-                stroke="#f3f4f6"
-                strokeWidth={config.corridorWidth}
-                strokeLinecap="butt" 
+            {/* 3. Entry Hole (same size as center hole) */}
+            <circle
+                cx={entryHoleX}
+                cy={entryHoleY}
+                r={config.holeRadius}
+                fill="#f3f4f6"
             />
 
             {/* 4. Center Hole / Goal */}
-            <circle 
-                cx="0" 
-                cy="0" 
-                r={config.corridorWidth} 
+            <circle
+                cx="0"
+                cy="0"
+                r={config.holeRadius}
                 fill="#f3f4f6"
             />
 
@@ -391,12 +393,12 @@ const MazeViewer: React.FC<MazeViewerProps> = ({
             
             {/* 6. AI Centerpiece (Engraved) */}
             {centerPiece && (
-                <g transform={`translate(-${config.corridorWidth}, -${config.corridorWidth})`}>
-                     <svg 
-                        x="0" 
-                        y="0" 
-                        width={config.corridorWidth * 2} 
-                        height={config.corridorWidth * 2} 
+                <g transform={`translate(-${config.holeRadius}, -${config.holeRadius})`}>
+                     <svg
+                        x="0"
+                        y="0"
+                        width={config.holeRadius * 2}
+                        height={config.holeRadius * 2}
                         viewBox={centerPiece.viewBox}
                      >
                         <path d={centerPiece.path} fill="#1f2937" />

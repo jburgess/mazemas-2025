@@ -358,19 +358,20 @@ export function createOutlinedPaths(
 }
 
 /**
- * Creates a complete maze outline including corridors, boundary, and center hole.
+ * Creates a complete maze outline including corridors, boundary, center hole, and entry hole.
  */
 export function createMazeOutline(
     mazePathD: string,
     entrancePathD: string,
     corridorWidth: number,
     outerRadius: number,
-    centerRadius: number,
-    joinType: 'round' | 'square' | 'miter' = 'round'
-): { corridors: string; boundary: string; centerHole: string } {
+    holeRadius: number,
+    joinType: 'round' | 'square' | 'miter' = 'round',
+    entryHolePosition?: { x: number; y: number }
+): { corridors: string; boundary: string; centerHole: string; entryHole: string } {
     // Parse and offset maze paths
     const mazePaths = svgPathToClipperPaths(mazePathD);
-    const entrancePaths = svgPathToClipperPaths(entrancePathD);
+    const entrancePaths = entrancePathD ? svgPathToClipperPaths(entrancePathD) : [];
     const allPaths = [...mazePaths, ...entrancePaths];
 
     const offsetDistance = corridorWidth / 2;
@@ -383,12 +384,18 @@ export function createMazeOutline(
     const boundaryCircle = createCircle(0, 0, outerRadius, 128);
 
     // Create center hole
-    const centerHole = createCircle(0, 0, centerRadius, 64);
+    const centerHole = createCircle(0, 0, holeRadius, 64);
+
+    // Create entry hole at the specified position
+    const entryHole = entryHolePosition
+        ? createCircle(entryHolePosition.x, entryHolePosition.y, holeRadius, 64)
+        : [];
 
     return {
         corridors: clipperPathsToSvgPath(corridorPolygons),
         boundary: clipperPathsToSvgPath([boundaryCircle]),
-        centerHole: clipperPathsToSvgPath([centerHole])
+        centerHole: clipperPathsToSvgPath([centerHole]),
+        entryHole: entryHole.length > 0 ? clipperPathsToSvgPath([entryHole]) : ''
     };
 }
 
