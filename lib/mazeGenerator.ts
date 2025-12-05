@@ -207,7 +207,77 @@ export const generateMaze = (config: MazeConfig): MazeData => {
     }
   }
 
-  // 3. Generate SVG Paths (Stitched for Smoothness)
+  // 3. Find Hardest Start Point and Rotate Maze to Put Entry at Top
+  const outerNodes = ringNodes[numRings];
+  let startNode = outerNodes[0];
+  let maxScore = -Infinity;
+
+  for (const node of outerNodes) {
+      let score = 0;
+      let curr: MazeNode | null = node;
+
+      let prevRadialDir = 0;
+      let inflections = 0;
+      let length = 0;
+      let totalRotation = 0;
+
+      while (curr.parent) {
+          length++;
+          const next = curr.parent;
+
+          // Radial Inflections
+          let currentRadialDir = 0;
+          if (next.r < curr.r) currentRadialDir = 1;
+          else if (next.r > curr.r) currentRadialDir = -1;
+
+          if (currentRadialDir !== 0) {
+              if (prevRadialDir !== 0 && currentRadialDir !== prevRadialDir) {
+                  inflections++;
+              }
+              prevRadialDir = currentRadialDir;
+          }
+
+          // Rotation
+          let dTheta = next.theta - curr.theta;
+          while (dTheta > Math.PI) dTheta -= 2 * Math.PI;
+          while (dTheta < -Math.PI) dTheta += 2 * Math.PI;
+          totalRotation += Math.abs(dTheta);
+
+          curr = next;
+      }
+
+      // Difficulty Score:
+      // High Difficulty = Long paths AND Many switches.
+      score = (length * 1) + (inflections * 200) + (totalRotation * 10);
+
+      if (score > maxScore) {
+          maxScore = score;
+          startNode = node;
+      }
+  }
+
+  // Rotate entire maze to put the entry point at top (theta = -π/2 in SVG coords)
+  const targetTheta = -Math.PI / 2;
+  const rotationAngle = targetTheta - startNode.theta;
+  const cosR = Math.cos(rotationAngle);
+  const sinR = Math.sin(rotationAngle);
+
+  for (const node of nodes) {
+      if (node.r === 0) continue; // Center stays at origin
+
+      // Rotate coordinates
+      const newX = node.x * cosR - node.y * sinR;
+      const newY = node.x * sinR + node.y * cosR;
+      node.x = newX;
+      node.y = newY;
+
+      // Update theta (normalize to [-π, π])
+      node.theta = node.theta + rotationAngle;
+      while (node.theta > Math.PI) node.theta -= 2 * Math.PI;
+      while (node.theta < -Math.PI) node.theta += 2 * Math.PI;
+  }
+
+  // 4. Generate SVG Paths (Stitched for Smoothness)
   // Instead of drawing individual segments, we build a graph and trace continuous lines.
   
   // Build adjacency graph for the MST
@@ -313,55 +383,6 @@ export const generateMaze = (config: MazeConfig): MazeData => {
   });
 
   const pathD = pathCommands.join(" ");
-
-  // 4. Find Hardest Start Point (Solution)
-  const outerNodes = ringNodes[numRings];
-  let startNode = outerNodes[0];
-  let maxScore = -Infinity;
-
-  for (const node of outerNodes) {
-      let score = 0;
-      let curr: MazeNode | null = node;
-      
-      let prevRadialDir = 0; 
-      let inflections = 0;
-      let length = 0;
-      let totalRotation = 0;
-
-      while (curr.parent) {
-          length++;
-          const next = curr.parent;
-          
-          // Radial Inflections
-          let currentRadialDir = 0;
-          if (next.r < curr.r) currentRadialDir = 1; 
-          else if (next.r > curr.r) currentRadialDir = -1; 
-
-          if (currentRadialDir !== 0) {
-              if (prevRadialDir !== 0 && currentRadialDir !== prevRadialDir) {
-                  inflections++;
-              }
-              prevRadialDir = currentRadialDir;
-          }
-          
-          // Rotation
-          let dTheta = next.theta - curr.theta;
-          while (dTheta > Math.PI) dTheta -= 2 * Math.PI;
-          while (dTheta < -Math.PI) dTheta += 2 * Math.PI;
-          totalRotation += Math.abs(dTheta);
-
-          curr = next;
-      }
-
-      // Difficulty Score:
-      // High Difficulty = Long paths AND Many switches.
-      score = (length * 1) + (inflections * 200) + (totalRotation * 10);
-
-      if (score > maxScore) {
-          maxScore = score;
-          startNode = node;
-      }
-  }
 
   // 5. Solution Path
   const solutionCommands: string[] = [];
