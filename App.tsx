@@ -14,6 +14,7 @@ const DEFAULT_CONFIG: MazeConfig = {
   cornerRounding: true,
   seed: Math.floor(Math.random() * 100000),
   holeRadius: 12, // radius of entry and center holes in mm
+  showEntryWedge: false, // removable wedge cutout for middle layer
 };
 
 function App() {

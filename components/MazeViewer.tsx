@@ -1,7 +1,7 @@
 import React, { useRef, useState } from 'react';
 import { MazeData } from '../types';
 import { Download, ZoomIn, ZoomOut, Eye, EyeOff, FileCog, Loader2, FileDown } from 'lucide-react';
-import { createMazeOutline } from '../lib/clipperUtils';
+import { createMazeOutline, generateEntryWedgePaths, EntryWedgeData } from '../lib/clipperUtils';
 
 interface MazeViewerProps {
   data: MazeData;
@@ -70,15 +70,38 @@ const MazeViewer: React.FC<MazeViewerProps> = ({
             { x: entryHoleX, y: entryHoleY } // Entry hole position
         );
 
+        setExportProgress(70);
+
+        // Generate wedge data if enabled
+        let wedgeData: EntryWedgeData | null = null;
+        if (config.showEntryWedge) {
+            wedgeData = generateEntryWedgePaths(
+                entryHoleX,
+                entryHoleY,
+                radius,
+                config.corridorWidth,
+                config.holeRadius
+            );
+        }
+
         setExportProgress(80);
 
         // Generate SVG with outlined paths
+        const wedgeSections = wedgeData ? `
+  <!-- ENTRY WEDGE (cut from middle layer) -->
+  <path d="${wedgeData.wedgePath}" fill="none" stroke="#FF0000" stroke-width="0.1"/>
+
+  <!-- WEDGE SCREW HOLE (3mm) -->
+  <path d="${wedgeData.screwHolePath}" fill="none" stroke="#FF0000" stroke-width="0.1"/>
+` : '';
+
         const svgContent = `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg"
      width="${config.diameter}mm"
      height="${config.diameter}mm"
      viewBox="${-halfView} ${-halfView} ${viewBoxSize} ${viewBoxSize}">
 
+  <!-- MAZE LAYER -->
   <!-- Corridor outlines (merged, no overlaps) -->
   <path d="${outlines.corridors}" fill="none" stroke="#000000" stroke-width="0.1"/>
 
@@ -90,7 +113,7 @@ const MazeViewer: React.FC<MazeViewerProps> = ({
 
   <!-- Entry hole -->
   <path d="${outlines.entryHole}" fill="none" stroke="#000000" stroke-width="0.1"/>
-
+${wedgeSections}
 </svg>`;
 
         setExportProgress(95);
@@ -138,11 +161,25 @@ const MazeViewer: React.FC<MazeViewerProps> = ({
             { x: entryHoleX, y: entryHoleY } // Entry hole position
         );
 
+        setExportProgress(50);
+
+        // Generate wedge data if enabled
+        let wedgeData: EntryWedgeData | null = null;
+        if (config.showEntryWedge) {
+            wedgeData = generateEntryWedgePaths(
+                entryHoleX,
+                entryHoleY,
+                radius,
+                config.corridorWidth,
+                config.holeRadius
+            );
+        }
+
         setExportProgress(60);
 
         // Generate DXF manually from the SVG paths
         // DXF format: https://www.autodesk.com/techpubs/autocad/acad2000/dxf/
-        const dxfContent = generateDXF(outlines, config.diameter);
+        const dxfContent = generateDXF(outlines, config.diameter, wedgeData);
 
         setExportProgress(90);
 
@@ -171,7 +208,11 @@ const MazeViewer: React.FC<MazeViewerProps> = ({
   };
 
   // Generate DXF file from SVG path data (R12 format for maximum compatibility)
-  const generateDXF = (outlines: { corridors: string; boundary: string; centerHole: string; entryHole: string }, diameter: number): string => {
+  const generateDXF = (
+    outlines: { corridors: string; boundary: string; centerHole: string; entryHole: string },
+    diameter: number,
+    wedgeData: EntryWedgeData | null = null
+  ): string => {
     let dxf = '';
 
     // Helper to add a line to DXF
@@ -211,10 +252,11 @@ const MazeViewer: React.FC<MazeViewerProps> = ({
     add(40, 0.0);
     add(0, 'ENDTAB');
 
-    // LAYER table
+    // LAYER table - count depends on whether wedge is included
+    const layerCount = wedgeData ? 5 : 3;
     add(0, 'TABLE');
     add(2, 'LAYER');
-    add(70, 3);
+    add(70, layerCount);
     // Layer 0
     add(0, 'LAYER');
     add(2, '0');
@@ -233,6 +275,23 @@ const MazeViewer: React.FC<MazeViewerProps> = ({
     add(70, 0);
     add(62, 3); // Green
     add(6, 'CONTINUOUS');
+
+    // Wedge layers (if enabled)
+    if (wedgeData) {
+      // Wedge cut layer (red)
+      add(0, 'LAYER');
+      add(2, 'WEDGE_CUT');
+      add(70, 0);
+      add(62, 1); // Red
+      add(6, 'CONTINUOUS');
+      // Wedge screw hole layer (yellow)
+      add(0, 'LAYER');
+      add(2, 'WEDGE_HOLE');
+      add(70, 0);
+      add(62, 2); // Yellow
+      add(6, 'CONTINUOUS');
+    }
+
     add(0, 'ENDTAB');
 
     add(0, 'ENDSEC');
@@ -307,6 +366,12 @@ const MazeViewer: React.FC<MazeViewerProps> = ({
     addPathToDXF(outlines.centerHole, 'BOUNDARY');
     addPathToDXF(outlines.entryHole, 'BOUNDARY');
 
+    // Add wedge entities if enabled
+    if (wedgeData) {
+      addPathToDXF(wedgeData.wedgePath, 'WEDGE_CUT');
+      addPathToDXF(wedgeData.screwHolePath, 'WEDGE_HOLE');
+    }
+
     add(0, 'ENDSEC');
 
     // EOF
@@ -378,7 +443,37 @@ const MazeViewer: React.FC<MazeViewerProps> = ({
                 fill="#f3f4f6"
             />
 
-            {/* 5. Solution Overlay */}
+            {/* 5. Entry Wedge Preview (when enabled) */}
+            {config.showEntryWedge && (() => {
+                const wedgeData = generateEntryWedgePaths(
+                    entryHoleX,
+                    entryHoleY,
+                    radius,
+                    config.corridorWidth,
+                    config.holeRadius
+                );
+                return (
+                    <g className="wedge-preview">
+                        {/* Wedge Outline */}
+                        <path
+                            d={wedgeData.wedgePath}
+                            fill="rgba(239, 68, 68, 0.2)"
+                            stroke="#ef4444"
+                            strokeWidth="0.5"
+                            strokeDasharray="3,2"
+                        />
+                        {/* Screw Hole */}
+                        <path
+                            d={wedgeData.screwHolePath}
+                            fill="none"
+                            stroke="#ef4444"
+                            strokeWidth="0.3"
+                        />
+                    </g>
+                );
+            })()}
+
+            {/* 6. Solution Overlay */}
             {showSolution && (
                 <path
                     d={solutionD}

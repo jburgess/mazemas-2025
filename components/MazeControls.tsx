@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { MazeConfig } from '../types';
-import { Settings, RefreshCw, Sparkles, Eye, EyeOff, Circle, Square, Hash } from 'lucide-react';
+import { Settings, RefreshCw, Sparkles, Eye, EyeOff, Circle, Square, Hash, PieChart } from 'lucide-react';
 
 interface MazeControlsProps {
   config: MazeConfig;
@@ -181,6 +181,30 @@ const MazeControls: React.FC<MazeControlsProps> = ({
              </button>
              <p className="text-xs text-gray-500">
                 Smooths sharp path intersections for a cleaner look.
+            </p>
+          </div>
+
+          {/* Entry Wedge Cutout */}
+          <div className="space-y-2 pt-2 border-t border-gray-700/50">
+             <div className="flex items-center justify-between">
+                <label className="text-sm font-medium text-gray-300">Entry Wedge Cutout</label>
+             </div>
+             <button
+                onClick={() => handleChange('showEntryWedge', !config.showEntryWedge)}
+                className={`flex items-center justify-between w-full p-2 rounded-lg border transition-all ${config.showEntryWedge ? 'bg-red-900/30 border-red-500/50' : 'bg-gray-700/50 border-gray-600'}`}
+             >
+                <div className="flex items-center gap-2">
+                    <PieChart className={`w-4 h-4 ${config.showEntryWedge ? 'text-red-400' : 'text-gray-400'}`} />
+                    <span className={`text-sm ${config.showEntryWedge ? 'text-red-400' : 'text-gray-300'}`}>
+                        {config.showEntryWedge ? 'Wedge Enabled' : 'Wedge Disabled'}
+                    </span>
+                </div>
+                <div className={`w-10 h-5 rounded-full relative transition-colors ${config.showEntryWedge ? 'bg-red-500' : 'bg-gray-600'}`}>
+                    <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-transform duration-200 ${config.showEntryWedge ? 'left-6' : 'left-1'}`} />
+                </div>
+             </button>
+             <p className="text-xs text-gray-500">
+                Removable wedge piece in middle layer for maintenance access.
             </p>
           </div>
 

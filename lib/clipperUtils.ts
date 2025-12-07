@@ -399,4 +399,176 @@ export function createMazeOutline(
     };
 }
 
+/**
+ * Creates a pie-slice wedge shape for the entry cutout.
+ * The wedge extends from an apex point to outerRadius, centered at entryAngle.
+ * The apex (inner point) is positioned so the opening width = corridorWidth for maintenance access.
+ * Uses polyline segments (M/L/Z only) for DXF compatibility.
+ */
+export function createEntryWedge(
+    outerRadius: number,
+    innerRadius: number,
+    corridorWidth: number,
+    entryAngle: number, // radians, typically -π/2 for top
+    holeRadius: number, // radius of entry hole, for screw positioning
+    arcSegments: number = 32
+): { wedgePath: string; screwHoleCenter: { x: number; y: number } } {
+    // The wedge meets the corridor with a rounded end (semicircle) matching corridor radius
+    // The center of this semicircle is at innerRadius (entry point)
+    // The semicircle has radius = corridorWidth/2
+    const slotRadius = corridorWidth / 2;
+
+    // Calculate the half-angle at the slot center radius
+    // The radial lines extend from the slot ends to the outer boundary
+    const halfAngle = Math.asin(slotRadius / innerRadius);
+
+    const angle1 = entryAngle - halfAngle;
+    const angle2 = entryAngle + halfAngle;
+
+    // Build the wedge path with ears that extend past outer boundary
+    // The ears prevent the wedge from falling through - rubber band holds it in place
+
+    const earExtension = 7; // mm - how far ears extend past outer boundary
+
+    // Ear starts halfway between the corridor (innerRadius) and outer boundary, plus 15%
+    const halfwayRadius = (innerRadius + outerRadius) / 2;
+    const earStartRadius = halfwayRadius + (outerRadius - innerRadius) * 0.15;
+
+    const pathParts: string[] = [];
+
+    // Slot end points - where wedge meets the corridor, at innerRadius
+    const slotX1 = innerRadius * Math.cos(angle1);
+    const slotY1 = innerRadius * Math.sin(angle1);
+    const slotX2 = innerRadius * Math.cos(angle2);
+    const slotY2 = innerRadius * Math.sin(angle2);
+
+    // Start at slot end 1
+    pathParts.push(`M ${slotX1.toFixed(3)} ${slotY1.toFixed(3)}`);
+
+    // Line up radial edge to where ear starts (halfway to outer boundary)
+    const earStart1X = earStartRadius * Math.cos(angle1);
+    const earStart1Y = earStartRadius * Math.sin(angle1);
+    pathParts.push(`L ${earStart1X.toFixed(3)} ${earStart1Y.toFixed(3)}`);
+
+    // Ear 1 - extends outward perpendicular to radial line
+    // Go outward (away from center of wedge)
+    const perpAngle1 = angle1 - Math.PI / 2; // perpendicular, pointing away from wedge center
+    const ear1OuterX = earStart1X + earExtension * Math.cos(perpAngle1);
+    const ear1OuterY = earStart1Y + earExtension * Math.sin(perpAngle1);
+    pathParts.push(`L ${ear1OuterX.toFixed(3)} ${ear1OuterY.toFixed(3)}`);
+
+    // Along ear outer edge (parallel to outer boundary arc, but extended)
+    const ear1EndX = (outerRadius * Math.cos(angle1)) + earExtension * Math.cos(perpAngle1);
+    const ear1EndY = (outerRadius * Math.sin(angle1)) + earExtension * Math.sin(perpAngle1);
+    pathParts.push(`L ${ear1EndX.toFixed(3)} ${ear1EndY.toFixed(3)}`);
+
+    // Back to outer boundary
+    const outerX1 = outerRadius * Math.cos(angle1);
+    const outerY1 = outerRadius * Math.sin(angle1);
+    pathParts.push(`L ${outerX1.toFixed(3)} ${outerY1.toFixed(3)}`);
+
+    // Arc along outer edge from angle1 to angle2
+    const outerArcAngle = angle2 - angle1;
+    const outerSegments = Math.max(8, Math.ceil(Math.abs(outerArcAngle) / (Math.PI / arcSegments)));
+    for (let i = 1; i <= outerSegments; i++) {
+        const t = angle1 + (i / outerSegments) * outerArcAngle;
+        const x = outerRadius * Math.cos(t);
+        const y = outerRadius * Math.sin(t);
+        pathParts.push(`L ${x.toFixed(3)} ${y.toFixed(3)}`);
+    }
+
+    // Ear 2 - on angle2 side
+    const perpAngle2 = angle2 + Math.PI / 2; // perpendicular, pointing away from wedge center
+    const ear2StartX = outerRadius * Math.cos(angle2);
+    const ear2StartY = outerRadius * Math.sin(angle2);
+
+    // Out to ear
+    const ear2OuterX = ear2StartX + earExtension * Math.cos(perpAngle2);
+    const ear2OuterY = ear2StartY + earExtension * Math.sin(perpAngle2);
+    pathParts.push(`L ${ear2OuterX.toFixed(3)} ${ear2OuterY.toFixed(3)}`);
+
+    // Along ear
+    const ear2EndX = (earStartRadius * Math.cos(angle2)) + earExtension * Math.cos(perpAngle2);
+    const ear2EndY = (earStartRadius * Math.sin(angle2)) + earExtension * Math.sin(perpAngle2);
+    pathParts.push(`L ${ear2EndX.toFixed(3)} ${ear2EndY.toFixed(3)}`);
+
+    // Back to radial edge
+    const earEnd2X = earStartRadius * Math.cos(angle2);
+    const earEnd2Y = earStartRadius * Math.sin(angle2);
+    pathParts.push(`L ${earEnd2X.toFixed(3)} ${earEnd2Y.toFixed(3)}`);
+
+    // Line back to slot end 2
+    pathParts.push(`L ${slotX2.toFixed(3)} ${slotY2.toFixed(3)}`);
+
+    // Close path
+    pathParts.push('Z');
+
+    const wedgePath = pathParts.join(' ');
+
+    // No screw hole needed - ears hold the wedge in place
+    const screwHoleCenter = { x: 0, y: 0 }; // Unused but kept for interface compatibility
+
+    return { wedgePath, screwHoleCenter };
+}
+
+/**
+ * Creates a simple circle path for a screw hole.
+ */
+export function createScrewHolePath(cx: number, cy: number, diameter: number, segments: number = 32): string {
+    const radius = diameter / 2;
+    const points: string[] = [];
+
+    for (let i = 0; i <= segments; i++) {
+        const angle = (i / segments) * 2 * Math.PI;
+        const x = cx + radius * Math.cos(angle);
+        const y = cy + radius * Math.sin(angle);
+        if (i === 0) {
+            points.push(`M ${x.toFixed(3)} ${y.toFixed(3)}`);
+        } else {
+            points.push(`L ${x.toFixed(3)} ${y.toFixed(3)}`);
+        }
+    }
+    points.push('Z');
+
+    return points.join(' ');
+}
+
+/**
+ * Data returned by entry wedge generation
+ */
+export interface EntryWedgeData {
+    wedgePath: string;      // SVG path for wedge outline (cut)
+    screwHolePath: string;  // SVG path for 3mm screw hole
+}
+
+/**
+ * Generates entry wedge paths for export.
+ */
+export function generateEntryWedgePaths(
+    entryHoleX: number,
+    entryHoleY: number,
+    outerRadius: number,
+    corridorWidth: number,
+    holeRadius: number // radius of entry hole
+): EntryWedgeData {
+    // Entry angle is the angle from center to entry point
+    const entryAngle = Math.atan2(entryHoleY, entryHoleX);
+
+    // Inner radius is the distance from center to entry point
+    const innerRadius = Math.sqrt(entryHoleX * entryHoleX + entryHoleY * entryHoleY);
+
+    const { wedgePath } = createEntryWedge(
+        outerRadius,
+        innerRadius,
+        corridorWidth,
+        entryAngle,
+        holeRadius
+    );
+
+    return {
+        wedgePath,
+        screwHolePath: '' // No screw hole - ears hold wedge in place with rubber band
+    };
+}
+
 export { CLIPPER_SCALE };

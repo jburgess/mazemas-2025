@@ -27,6 +27,7 @@ Min Wall: 11mm
 
 Seeds
 4208
+93706
 39763
 99583
 45267
@@ -35,3 +36,6 @@ Seeds
 79602
 35187
 46224
+
+
+Maze etch is 93mm from bed to nozzle

@@ -6,6 +6,7 @@ export interface MazeConfig {
   cornerRounding: boolean; // boolean
   seed: number;
   holeRadius: number; // radius of center hole and entry hole in mm
+  showEntryWedge: boolean; // generate removable wedge cutout for middle layer
 }
 
 export interface Point {
