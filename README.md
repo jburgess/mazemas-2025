@@ -2,6 +2,8 @@
 
 A React/TypeScript web application that generates circular "puck mazes" - laser-cut ready mazes where a ball navigates from the outer edge to the center.
 
+**[Live Demo](https://jburgess.github.io/mazemas-2025/)**
+
 ## Features
 
 - **Procedural Maze Generation**: Uses a Growing Tree algorithm on polar coordinates
