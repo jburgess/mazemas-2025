@@ -1,6 +1,6 @@
 # Maze MAS 2025
 
-A React/TypeScript web application that generates circular "puck mazes" - laser-cut ready mazes where a ball navigates from the outer edge to the center.
+A React/TypeScript web application that generates circular "puck mazes" - laser-cut ready mazes where a magnet navigates from the outer edge to the center.
 
 **[Live Demo](https://jburgess.github.io/mazemas-2025/)**
 
@@ -16,6 +16,10 @@ A React/TypeScript web application that generates circular "puck mazes" - laser-
 The generator creates concentric rings of nodes with more nodes on outer rings (proportional to circumference). A weighted neighbor selection algorithm with **inertia** (momentum to continue direction) and **inward bonus** (encourages weaving toward center) creates engaging, solvable mazes.
 
 The solution path is calculated by finding the "hardest" entry point on the outer edge based on path length, radial inflections, and total rotation.
+
+## Materials
+
+Each maze is cut from **3mm acrylic** sheets. The design consists of multiple layers that stack together, with a magnet guided through the corridors using another magnet held underneath.
 
 ## Installation
 
@@ -39,15 +43,15 @@ npm run preview  # Preview production build
 |-----------|-------------|
 | `diameter` | Total maze size in mm |
 | `wallWidth` | Minimum wall thickness in mm |
-| `corridorWidth` | Ball track width in mm |
+| `corridorWidth` | Magnet track width in mm |
 | `difficulty` | 1-5, affects branching and path complexity |
 | `cornerRounding` | Round vs miter joins |
 | `seed` | PRNG seed for reproducibility |
 
 ## DXF Export
 
-The app exports laser-cut ready DXF files using MakerJS:
-1. SVG paths are imported and expanded to create corridor walls
+The app exports laser-cut ready DXF files:
+1. SVG paths are expanded to create corridor walls
 2. All segments are unioned into a single cut path
 3. Outer boundary circle is added
 4. Exported as DXF compatible with most laser cutters
@@ -56,7 +60,7 @@ The app exports laser-cut ready DXF files using MakerJS:
 
 - React 19 + TypeScript
 - Vite
-- MakerJS (CAD operations)
+- Clipper.js (path operations)
 - Lucide React (icons)
 
 ## License
