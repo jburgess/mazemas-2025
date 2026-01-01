@@ -1,45 +1,62 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# Maze MAS 2025
 
-# Run and deploy your AI Studio app
+A React/TypeScript web application that generates circular "puck mazes" - laser-cut ready mazes where a ball navigates from the outer edge to the center.
 
-This contains everything you need to run your app locally.
+## Features
 
-View your app in AI Studio: https://ai.studio/apps/drive/1iUJ2HZqKvTeBbYkPx9Y8W58ciwYs6hhc
+- **Procedural Maze Generation**: Uses a Growing Tree algorithm on polar coordinates
+- **Laser-Cut Ready Export**: Generates DXF files ready for laser cutting
+- **Reproducible Designs**: Seed-based generation for consistent results
+- **Configurable Difficulty**: Adjustable complexity from beginner to expert
 
-## Run Locally
+## How It Works
 
-**Prerequisites:**  Node.js
+The generator creates concentric rings of nodes with more nodes on outer rings (proportional to circumference). A weighted neighbor selection algorithm with **inertia** (momentum to continue direction) and **inward bonus** (encourages weaving toward center) creates engaging, solvable mazes.
 
+The solution path is calculated by finding the "hardest" entry point on the outer edge based on path length, radial inflections, and total rotation.
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+## Installation
 
+**Prerequisites:** Node.js
 
-## Cut Properties
-Diameter: 290mm
-Puck Size: 14mm
-Min Wall: 11mm
+```bash
+npm install
+```
 
-Seeds
-4208
-41046
-93706
-39763
-99583
-45267
-97028
-50594
-79602
-35187
-46224
+## Usage
 
+```bash
+npm run dev      # Start dev server
+npm run build    # Production build
+npm run preview  # Preview production build
+```
 
-Maze etch is 93mm from bed to nozzle
+## Configuration
 
-40speed, 85 power just barely!
+| Parameter | Description |
+|-----------|-------------|
+| `diameter` | Total maze size in mm |
+| `wallWidth` | Minimum wall thickness in mm |
+| `corridorWidth` | Ball track width in mm |
+| `difficulty` | 1-5, affects branching and path complexity |
+| `cornerRounding` | Round vs miter joins |
+| `seed` | PRNG seed for reproducibility |
 
+## DXF Export
+
+The app exports laser-cut ready DXF files using MakerJS:
+1. SVG paths are imported and expanded to create corridor walls
+2. All segments are unioned into a single cut path
+3. Outer boundary circle is added
+4. Exported as DXF compatible with most laser cutters
+
+## Tech Stack
+
+- React 19 + TypeScript
+- Vite
+- MakerJS (CAD operations)
+- Lucide React (icons)
+
+## License
+
+Private project.
