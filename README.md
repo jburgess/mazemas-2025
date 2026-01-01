@@ -27,6 +27,7 @@ Min Wall: 11mm
 
 Seeds
 4208
+41046
 93706
 39763
 99583
@@ -39,3 +40,6 @@ Seeds
 
 
 Maze etch is 93mm from bed to nozzle
+
+40speed, 85 power just barely!
+
