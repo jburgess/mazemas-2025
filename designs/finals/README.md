@@ -12,6 +12,7 @@ Production-ready maze designs for laser cutting. Each maze corresponds to an acr
 | ![Red](orbital_maze_290mm_seed50937_red.svg) | Red | 50937 | `orbital_maze_290mm_seed50937_red.svg` |
 | ![Green](orbital_maze_290mm_seed74900_green.svg) | Green | 74900 | `orbital_maze_290mm_seed74900_green.svg` |
 | ![Pink](orbital_maze_290mm_seed83544_pink.svg) | Pink | 83544 | `orbital_maze_290mm_seed83544_pink.svg` |
+| ![Black](orbital_maze_290mm_seed99583_black.svg) | Black | 99583 | `orbital_maze_290mm_seed99583_black.svg` |
 
 ## Cut Specifications
 
