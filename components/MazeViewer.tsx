@@ -5,18 +5,14 @@ import { createMazeOutline, generateEntryWedgePaths, EntryWedgeData } from '../l
 
 interface MazeViewerProps {
   data: MazeData;
-  centerPiece?: { path: string; viewBox: string } | null;
-  lore: string;
   showSolution: boolean;
   onToggleSolution: () => void;
 }
 
-const MazeViewer: React.FC<MazeViewerProps> = ({ 
-    data, 
-    centerPiece, 
-    lore,
+const MazeViewer: React.FC<MazeViewerProps> = ({
+    data,
     showSolution,
-    onToggleSolution 
+    onToggleSolution
 }) => {
   const svgRef = useRef<SVGSVGElement>(null);
   const [zoom, setZoom] = useState(1);
@@ -384,10 +380,10 @@ ${wedgeSections}
     <div className="flex-1 h-full relative bg-gray-950 flex flex-col">
        <div className="absolute top-4 left-4 z-10 bg-gray-900/80 backdrop-blur-sm p-4 rounded-xl border border-gray-700 max-w-md pointer-events-none select-none">
             <h1 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400">
-                {lore}
+                Maze MAS 2025
             </h1>
             <p className="text-gray-400 text-sm mt-1">
-                Organic Tree Gen • {config.diameter}mm Ø • Diff {config.difficulty}
+                {config.diameter}mm Ø • Difficulty {config.difficulty} • Seed {config.seed}
             </p>
        </div>
 
@@ -478,29 +474,13 @@ ${wedgeSections}
                 <path
                     d={solutionD}
                     fill="none"
-                    stroke="#ef4444" 
+                    stroke="#ef4444"
                     strokeWidth={config.corridorWidth * 0.4}
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     opacity={0.9}
                 />
             )}
-            
-            {/* 6. AI Centerpiece (Engraved) */}
-            {centerPiece && (
-                <g transform={`translate(-${config.holeRadius}, -${config.holeRadius})`}>
-                     <svg
-                        x="0"
-                        y="0"
-                        width={config.holeRadius * 2}
-                        height={config.holeRadius * 2}
-                        viewBox={centerPiece.viewBox}
-                     >
-                        <path d={centerPiece.path} fill="#1f2937" />
-                     </svg>
-                </g>
-            )}
-            
           </svg>
         </div>
       </div>

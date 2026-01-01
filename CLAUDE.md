@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Orbital Maze Gen is a React/TypeScript web application that generates circular "puck mazes" - laser-cut ready mazes where a ball/puck navigates from the outer edge to the center. The app uses Gemini AI to generate custom SVG centerpieces and maze lore.
+Maze MAS 2025 is a React/TypeScript web application that generates circular "puck mazes" - laser-cut ready mazes where a ball/puck navigates from the outer edge to the center.
 
 ## Development Commands
 
@@ -19,8 +19,8 @@ npm run preview    # Preview production build
 
 ### Core Data Flow
 
-1. `MazeConfig` (types.ts) defines maze parameters →
-2. `generateMaze()` (lib/mazeGenerator.ts) produces `MazeData` with SVG path strings →
+1. `MazeConfig` (types.ts) defines maze parameters
+2. `generateMaze()` (lib/mazeGenerator.ts) produces `MazeData` with SVG path strings
 3. `MazeViewer` renders SVG and handles DXF export
 
 ### Maze Generation Algorithm
@@ -35,18 +35,12 @@ The generator in `lib/mazeGenerator.ts` uses a **Growing Tree algorithm** on a p
 
 ### DXF Export Pipeline
 
-`MazeViewer.tsx:handleExportDXF()` uses CDN-loaded libraries (MakerJS, Bezier.js, Opentype.js):
+`MazeViewer.tsx:handleExportDXF()` uses Clipper.js for path operations:
 
-1. Imports SVG path data via `makerjs.importer.fromSVGPathData()`
-2. Expands stroke width using `makerjs.model.expandPaths()` to create corridor walls
-3. Iteratively unions all corridor segments (with progress tracking to avoid browser freeze)
+1. Parses SVG path data
+2. Expands stroke width to create corridor walls
+3. Unions all corridor segments
 4. Adds outer boundary circle and exports to DXF
-
-### Gemini AI Integration
-
-`services/geminiService.ts` uses `@google/genai` with structured JSON output:
-- `generateCenterPiece()`: Creates laser-cut-ready SVG path for maze center
-- `analyzeMaze()`: Generates mystical name/lore for the maze
 
 ### Key Configuration Types
 
@@ -58,18 +52,16 @@ interface MazeConfig {
   difficulty: number;    // 1-5, affects branching and path complexity
   cornerRounding: boolean; // Round vs miter joins
   seed: number;          // PRNG seed for reproducibility
+  holeRadius: number;    // Entry and center hole radius in mm
+  showEntryWedge: boolean; // Removable wedge cutout for middle layer
 }
 ```
 
-## External Dependencies (CDN)
+## Dependencies
 
-The app loads CAD libraries via CDN in `index.html`:
-- **MakerJS**: SVG-to-DXF conversion, path operations (expand, union)
-- **Bezier.js**: Required by MakerJS for curve operations
-- **Opentype.js**: Required by MakerJS (font handling)
-
-A `window.require` shim maps module names to global objects for MakerJS browser compatibility.
-
-## Environment
-
-Set `GEMINI_API_KEY` in `.env.local` for AI features.
+- **React 19** + TypeScript
+- **Vite** - Build tool
+- **clipper-lib** - Path offsetting and boolean operations
+- **makerjs** - CAD operations
+- **lucide-react** - Icons
+- **Tailwind CSS** (CDN) - Styling

@@ -1,23 +1,19 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { MazeConfig } from '../types';
-import { Settings, RefreshCw, Sparkles, Eye, EyeOff, Circle, Square, Hash, PieChart } from 'lucide-react';
+import { Settings, RefreshCw, Eye, EyeOff, Circle, Square, Hash, PieChart } from 'lucide-react';
 
 interface MazeControlsProps {
   config: MazeConfig;
   onChange: (newConfig: MazeConfig) => void;
   onRegenerate: () => void;
-  onAiAction: () => void;
-  isAiLoading: boolean;
   showSolution: boolean;
   onToggleSolution: () => void;
 }
 
-const MazeControls: React.FC<MazeControlsProps> = ({ 
-    config, 
-    onChange, 
-    onRegenerate, 
-    onAiAction, 
-    isAiLoading,
+const MazeControls: React.FC<MazeControlsProps> = ({
+    config,
+    onChange,
+    onRegenerate,
     showSolution,
     onToggleSolution
 }) => {
@@ -55,7 +51,7 @@ const MazeControls: React.FC<MazeControlsProps> = ({
   };
 
   return (
-    <div 
+    <div
         className="bg-gray-800 flex flex-col h-full border-r border-gray-700 shadow-2xl z-10 relative flex-shrink-0 group"
         style={{ width: `${width}px` }}
     >
@@ -148,8 +144,8 @@ const MazeControls: React.FC<MazeControlsProps> = ({
             </div>
             <div className="flex gap-1 h-2">
                 {[1,2,3,4,5].map(step => (
-                    <div 
-                        key={step} 
+                    <div
+                        key={step}
                         className={`flex-1 rounded-sm cursor-pointer transition-colors ${step <= config.difficulty ? 'bg-emerald-500' : 'bg-gray-700'}`}
                         onClick={() => handleChange('difficulty', step)}
                     />
@@ -240,25 +236,16 @@ const MazeControls: React.FC<MazeControlsProps> = ({
 
             <button
               onClick={onRegenerate}
-              className="flex items-center justify-center gap-2 w-full py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors font-medium border border-gray-600 hover:border-gray-500"
+              className="flex items-center justify-center gap-2 w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg transition-colors font-medium border border-emerald-500 shadow-lg shadow-emerald-900/20"
             >
               <RefreshCw className="w-4 h-4" />
               Regenerate
-            </button>
-            
-            <button
-                onClick={onAiAction}
-                disabled={isAiLoading}
-                className="flex items-center justify-center gap-2 w-full py-3 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg transition-all shadow-lg hover:shadow-emerald-500/20 font-medium group"
-            >
-                <Sparkles className={`w-4 h-4 ${isAiLoading ? 'animate-spin' : 'group-hover:animate-pulse'}`} />
-                {isAiLoading ? 'Dreaming...' : 'AI Centerpiece'}
             </button>
           </div>
       </div>
 
       {/* Resize Handle */}
-      <div 
+      <div
         className={`absolute top-0 right-0 w-1.5 h-full cursor-col-resize hover:bg-emerald-500 transition-colors z-20 flex items-center justify-center ${isResizing ? 'bg-emerald-500' : 'bg-transparent'}`}
         onMouseDown={startResizing}
       >
