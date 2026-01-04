@@ -19,6 +19,7 @@ function App() {
   const [config, setConfig] = useState<MazeConfig>(DEFAULT_CONFIG);
   const [mazeData, setMazeData] = useState<MazeData | null>(null);
   const [showSolution, setShowSolution] = useState(false);
+  const [mobileSheetHeight, setMobileSheetHeight] = useState(0);
 
   const regenerate = useCallback(() => {
     const newConfig = { ...config, seed: Math.floor(Math.random() * 100000) };
@@ -45,6 +46,7 @@ function App() {
         config={config}
         onChange={handleConfigChange}
         onRegenerate={regenerate}
+        onSheetHeightChange={setMobileSheetHeight}
       />
 
       <main className="flex-1 relative">
@@ -53,6 +55,7 @@ function App() {
                 data={mazeData}
                 showSolution={showSolution}
                 onToggleSolution={() => setShowSolution(!showSolution)}
+                mobileBottomOffset={mobileSheetHeight}
             />
         )}
       </main>

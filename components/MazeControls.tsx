@@ -8,6 +8,7 @@ interface MazeControlsProps {
   config: MazeConfig;
   onChange: (newConfig: MazeConfig) => void;
   onRegenerate: () => void;
+  onSheetHeightChange?: (height: number) => void; // Mobile bottom sheet height
 }
 
 // Bottom sheet snap points
@@ -18,6 +19,7 @@ const MazeControls: React.FC<MazeControlsProps> = ({
     config,
     onChange,
     onRegenerate,
+    onSheetHeightChange,
 }) => {
   // Desktop sidebar state
   const [width, setWidth] = useState(340);
@@ -32,8 +34,16 @@ const MazeControls: React.FC<MazeControlsProps> = ({
   // Spring animation for mobile bottom sheet
   const [sheetStyle, sheetApi] = useSpring(() => ({
     height: COLLAPSED_HEIGHT,
-    config: { tension: 300, friction: 30 }
+    config: { tension: 300, friction: 30 },
+    onChange: ({ value }) => {
+      onSheetHeightChange?.(value.height);
+    }
   }));
+
+  // Report initial height on mount
+  useEffect(() => {
+    onSheetHeightChange?.(COLLAPSED_HEIGHT);
+  }, [onSheetHeightChange]);
 
   // Drag gesture for mobile bottom sheet
   const bindDrag = useDrag(

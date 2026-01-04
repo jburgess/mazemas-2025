@@ -9,12 +9,14 @@ interface MazeViewerProps {
   data: MazeData;
   showSolution: boolean;
   onToggleSolution: () => void;
+  mobileBottomOffset?: number; // Height of mobile bottom sheet
 }
 
 const MazeViewer: React.FC<MazeViewerProps> = ({
     data,
     showSolution,
-    onToggleSolution
+    onToggleSolution,
+    mobileBottomOffset = 0
 }) => {
   const svgRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -22,7 +24,16 @@ const MazeViewer: React.FC<MazeViewerProps> = ({
   const [exportProgress, setExportProgress] = useState(0);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [mazeSize, setMazeSize] = useState(300); // Size in pixels
+  const [isMobile, setIsMobile] = useState(false);
   const { config, pathD, solutionD } = data;
+
+  // Detect mobile breakpoint
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // Spring animation for smooth zoom/pan
   const [style, api] = useSpring(() => ({
@@ -38,10 +49,11 @@ const MazeViewer: React.FC<MazeViewerProps> = ({
       if (!containerRef.current) return;
       const container = containerRef.current;
       const containerWidth = container.clientWidth;
-      const containerHeight = container.clientHeight;
+      // Account for mobile bottom sheet offset
+      const containerHeight = container.clientHeight - (isMobile ? mobileBottomOffset : 0);
 
-      // Calculate size to fit with padding (90% of available space)
-      const availableSize = Math.min(containerWidth, containerHeight) * 0.85;
+      // Calculate size to fit with padding (85% of available space)
+      const availableSize = Math.min(containerWidth, Math.max(100, containerHeight)) * 0.85;
       setMazeSize(Math.max(200, availableSize));
 
       // Reset position when resizing
@@ -58,7 +70,7 @@ const MazeViewer: React.FC<MazeViewerProps> = ({
     calculateFitSize();
 
     return () => resizeObserver.disconnect();
-  }, [api]);
+  }, [api, mobileBottomOffset, isMobile]);
 
   // Reset view when maze data changes
   useEffect(() => {
@@ -472,12 +484,26 @@ ${wedgeSections}
   return (
     <div className="flex-1 h-full relative bg-gray-950 flex flex-col">
        <div className="absolute top-4 left-4 z-10 bg-gray-900/80 backdrop-blur-sm p-4 rounded-xl border border-gray-700 max-w-md pointer-events-none select-none">
-            <h1 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400">
+            <h1 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400 hidden md:block">
                 Maze MAS 2025
             </h1>
-            <p className="text-gray-400 text-sm mt-1">
+            {/* Desktop: compact info */}
+            <p className="text-gray-400 text-sm mt-1 hidden md:block">
                 <span className="font-mono">{config.diameter}mm</span> Ø • Difficulty <span className="font-mono">{config.difficulty}</span> • Seed <span className="font-mono">{config.seed}</span>
             </p>
+            {/* Mobile: show key values prominently */}
+            <div className="md:hidden grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
+                <div className="text-gray-400">Diameter</div>
+                <div className="font-mono text-emerald-400 text-right">{config.diameter}mm</div>
+                <div className="text-gray-400">Track</div>
+                <div className="font-mono text-emerald-400 text-right">{config.corridorWidth}mm</div>
+                <div className="text-gray-400">Wall</div>
+                <div className="font-mono text-emerald-400 text-right">{config.wallWidth}mm</div>
+                <div className="text-gray-400">Hole</div>
+                <div className="font-mono text-emerald-400 text-right">{config.holeRadius}mm</div>
+                <div className="text-gray-400">Difficulty</div>
+                <div className="font-mono text-emerald-400 text-right">{config.difficulty}/5</div>
+            </div>
        </div>
 
        {/* Error Toast */}
@@ -502,6 +528,7 @@ ${wedgeSections}
       <div
         ref={containerRef}
         className="flex-1 flex items-center justify-center overflow-hidden p-8 touch-none"
+        style={{ paddingBottom: isMobile ? mobileBottomOffset + 32 : undefined }}
       >
         <animated.div
             className="relative rounded-full cursor-grab active:cursor-grabbing"
@@ -603,7 +630,10 @@ ${wedgeSections}
       </div>
 
       {/* Toolbar */}
-      <div className="absolute bottom-4 md:bottom-8 left-1/2 -translate-x-1/2 flex flex-wrap items-center justify-center gap-2 bg-gray-800/90 backdrop-blur border border-gray-700 p-2 rounded-2xl z-20 max-w-[95vw]">
+      <div
+        className="absolute left-1/2 -translate-x-1/2 flex flex-wrap items-center justify-center gap-2 bg-gray-800/90 backdrop-blur border border-gray-700 p-2 rounded-2xl z-20 max-w-[95vw]"
+        style={{ bottom: isMobile ? mobileBottomOffset + 16 : 32 }}
+      >
         <button
             onClick={handleZoomOut}
             className="p-3 hover:bg-gray-700 rounded-xl text-gray-300 transition-colors"
