@@ -19,7 +19,6 @@ function App() {
   const [config, setConfig] = useState<MazeConfig>(DEFAULT_CONFIG);
   const [mazeData, setMazeData] = useState<MazeData | null>(null);
   const [showSolution, setShowSolution] = useState(false);
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const regenerate = useCallback(() => {
     const newConfig = { ...config, seed: Math.floor(Math.random() * 100000) };
@@ -46,8 +45,6 @@ function App() {
         config={config}
         onChange={handleConfigChange}
         onRegenerate={regenerate}
-        isOpen={isMenuOpen}
-        onToggleMenu={() => setIsMenuOpen(!isMenuOpen)}
       />
 
       <main className="flex-1 relative">
