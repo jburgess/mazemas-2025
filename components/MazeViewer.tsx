@@ -1,7 +1,9 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { MazeData } from '../types';
-import { Download, ZoomIn, ZoomOut, Eye, EyeOff, FileCog, Loader2, FileDown, X, AlertTriangle } from 'lucide-react';
+import { Download, ZoomIn, ZoomOut, Eye, EyeOff, FileCog, Loader2, FileDown, X, AlertTriangle, RotateCcw } from 'lucide-react';
 import { createMazeOutline, generateEntryWedgePaths, EntryWedgeData } from '../lib/clipperUtils';
+import { useSpring, animated } from '@react-spring/web';
+import { useGesture } from '@use-gesture/react';
 
 interface MazeViewerProps {
   data: MazeData;
@@ -15,11 +17,95 @@ const MazeViewer: React.FC<MazeViewerProps> = ({
     onToggleSolution
 }) => {
   const svgRef = useRef<SVGSVGElement>(null);
-  const [zoom, setZoom] = useState(1);
+  const containerRef = useRef<HTMLDivElement>(null);
   const [isExporting, setIsExporting] = useState(false);
   const [exportProgress, setExportProgress] = useState(0);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [mazeSize, setMazeSize] = useState(300); // Size in pixels
   const { config, pathD, solutionD } = data;
+
+  // Spring animation for smooth zoom/pan
+  const [style, api] = useSpring(() => ({
+    scale: 1,
+    x: 0,
+    y: 0,
+    config: { tension: 300, friction: 30 }
+  }));
+
+  // Calculate maze size to fit container on load and resize
+  useEffect(() => {
+    const calculateFitSize = () => {
+      if (!containerRef.current) return;
+      const container = containerRef.current;
+      const containerWidth = container.clientWidth;
+      const containerHeight = container.clientHeight;
+
+      // Calculate size to fit with padding (90% of available space)
+      const availableSize = Math.min(containerWidth, containerHeight) * 0.85;
+      setMazeSize(Math.max(200, availableSize));
+
+      // Reset position when resizing
+      api.start({ scale: 1, x: 0, y: 0, immediate: true });
+    };
+
+    // Use ResizeObserver for more reliable container size detection
+    const resizeObserver = new ResizeObserver(calculateFitSize);
+    if (containerRef.current) {
+      resizeObserver.observe(containerRef.current);
+    }
+
+    // Initial calculation
+    calculateFitSize();
+
+    return () => resizeObserver.disconnect();
+  }, [api]);
+
+  // Reset view when maze data changes
+  useEffect(() => {
+    api.start({ scale: 1, x: 0, y: 0 });
+  }, [data, api]);
+
+  // Gesture handling
+  useGesture(
+    {
+      onDrag: ({ offset: [x, y], memo }) => {
+        api.start({ x, y });
+        return memo;
+      },
+      onPinch: ({ offset: [scale], memo }) => {
+        const clampedScale = Math.min(5, Math.max(0.2, scale));
+        api.start({ scale: clampedScale });
+        return memo;
+      },
+      onWheel: ({ delta: [, dy], event }) => {
+        event.preventDefault();
+        const currentScale = style.scale.get();
+        const newScale = Math.min(5, Math.max(0.2, currentScale - dy * 0.001));
+        api.start({ scale: newScale });
+      },
+    },
+    {
+      target: containerRef,
+      drag: { from: () => [style.x.get(), style.y.get()] },
+      pinch: { scaleBounds: { min: 0.2, max: 5 }, from: () => [style.scale.get(), 0] },
+      wheel: { eventOptions: { passive: false } },
+    }
+  );
+
+  // Zoom button handlers
+  const handleZoomIn = useCallback(() => {
+    const currentScale = style.scale.get();
+    api.start({ scale: Math.min(5, currentScale + 0.3) });
+  }, [api, style.scale]);
+
+  const handleZoomOut = useCallback(() => {
+    const currentScale = style.scale.get();
+    api.start({ scale: Math.max(0.2, currentScale - 0.3) });
+  }, [api, style.scale]);
+
+  const handleResetView = useCallback(() => {
+    api.start({ scale: 1, x: 0, y: 0 });
+  }, [api]);
 
   // Auto-dismiss error after 5 seconds
   useEffect(() => {
@@ -413,13 +499,18 @@ ${wedgeSections}
          </div>
        )}
 
-      <div className="flex-1 flex items-center justify-center overflow-hidden p-8">
-        <div 
-            className="relative transition-transform duration-200 ease-out rounded-full"
-            style={{ 
-                transform: `scale(${zoom})`,
-                width: `${config.diameter}mm`,
-                height: `${config.diameter}mm`,
+      <div
+        ref={containerRef}
+        className="flex-1 flex items-center justify-center overflow-hidden p-8 touch-none"
+      >
+        <animated.div
+            className="relative rounded-full cursor-grab active:cursor-grabbing"
+            style={{
+                scale: style.scale,
+                x: style.x,
+                y: style.y,
+                width: mazeSize,
+                height: mazeSize,
             }}
         >
           <svg
@@ -508,21 +599,28 @@ ${wedgeSections}
                 />
             )}
           </svg>
-        </div>
+        </animated.div>
       </div>
 
       {/* Toolbar */}
       <div className="absolute bottom-4 md:bottom-8 left-1/2 -translate-x-1/2 flex flex-wrap items-center justify-center gap-2 bg-gray-800/90 backdrop-blur border border-gray-700 p-2 rounded-2xl z-20 max-w-[95vw]">
         <button
-            onClick={() => setZoom(z => Math.max(0.2, z - 0.2))}
+            onClick={handleZoomOut}
             className="p-3 hover:bg-gray-700 rounded-xl text-gray-300 transition-colors"
             aria-label="Zoom out"
         >
             <ZoomOut className="w-5 h-5" />
         </button>
-        <span className="text-sm font-mono text-gray-400 w-12 text-center">{Math.round(zoom * 100)}%</span>
         <button
-            onClick={() => setZoom(z => Math.min(3, z + 0.2))}
+            onClick={handleResetView}
+            className="p-2 hover:bg-gray-700 rounded-lg text-gray-400 transition-colors"
+            aria-label="Reset view"
+            title="Reset to fit"
+        >
+            <RotateCcw className="w-4 h-4" />
+        </button>
+        <button
+            onClick={handleZoomIn}
             className="p-3 hover:bg-gray-700 rounded-xl text-gray-300 transition-colors"
             aria-label="Zoom in"
         >
