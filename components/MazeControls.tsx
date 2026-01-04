@@ -1,21 +1,21 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { MazeConfig } from '../types';
-import { Settings, RefreshCw, Eye, EyeOff, Circle, Square, Hash, PieChart } from 'lucide-react';
+import { Settings, RefreshCw, Circle, Square, Hash, PieChart, Menu, X } from 'lucide-react';
 
 interface MazeControlsProps {
   config: MazeConfig;
   onChange: (newConfig: MazeConfig) => void;
   onRegenerate: () => void;
-  showSolution: boolean;
-  onToggleSolution: () => void;
+  isOpen: boolean;
+  onToggleMenu: () => void;
 }
 
 const MazeControls: React.FC<MazeControlsProps> = ({
     config,
     onChange,
     onRegenerate,
-    showSolution,
-    onToggleSolution
+    isOpen,
+    onToggleMenu
 }) => {
   const [width, setWidth] = useState(340);
   const [isResizing, setIsResizing] = useState(false);
@@ -51,11 +51,33 @@ const MazeControls: React.FC<MazeControlsProps> = ({
   };
 
   return (
-    <div
-        className="bg-gray-800 flex flex-col h-full border-r border-gray-700 shadow-2xl z-10 relative flex-shrink-0 group"
-        style={{ width: `${width}px` }}
-    >
-      <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-6 custom-scrollbar">
+    <>
+      {/* Mobile Menu Button */}
+      <button
+        onClick={onToggleMenu}
+        className="md:hidden fixed top-4 left-4 z-50 p-3 bg-gray-800 border border-gray-700 rounded-lg text-white shadow-lg"
+        aria-label={isOpen ? "Close menu" : "Open menu"}
+      >
+        {isOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+      </button>
+
+      {/* Backdrop for mobile */}
+      {isOpen && (
+        <div
+          className="md:hidden fixed inset-0 bg-black/50 z-30"
+          onClick={onToggleMenu}
+        />
+      )}
+
+      <div
+        className={`bg-gray-800 flex flex-col h-full border-r border-gray-700 shadow-2xl z-40 flex-shrink-0 group
+          fixed md:relative
+          transition-transform duration-300 ease-in-out
+          ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+        `}
+        style={{ width: `${width}px`, maxWidth: '100vw' }}
+      >
+        <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-6 custom-scrollbar">
           <div className="flex items-center gap-3 mb-2">
             <Settings className="text-emerald-400 w-6 h-6" />
             <h2 className="text-xl font-bold text-white tracking-wide">Configuration</h2>
@@ -82,10 +104,10 @@ const MazeControls: React.FC<MazeControlsProps> = ({
             </div>
           </div>
 
-          {/* Magnet Size / Corridor Width */}
+          {/* Track Width */}
           <div className="space-y-2">
             <div className="flex justify-between">
-              <label className="text-sm font-medium text-gray-300">Magnet Size (Corridor)</label>
+              <label className="text-sm font-medium text-gray-300">Track Width</label>
               <span className="text-sm text-emerald-400">{config.corridorWidth}mm</span>
             </div>
             <input
@@ -116,10 +138,10 @@ const MazeControls: React.FC<MazeControlsProps> = ({
             />
           </div>
 
-          {/* Hole Radius */}
+          {/* Hole Size */}
           <div className="space-y-2">
             <div className="flex justify-between">
-              <label className="text-sm font-medium text-gray-300">Hole Radius (Entry & Center)</label>
+              <label className="text-sm font-medium text-gray-300">Hole Size</label>
               <span className="text-sm text-emerald-400">{config.holeRadius}mm</span>
             </div>
             <input
@@ -142,13 +164,15 @@ const MazeControls: React.FC<MazeControlsProps> = ({
               <label className="text-sm font-medium text-gray-300">Difficulty</label>
               <span className="text-sm text-emerald-400">{config.difficulty}/5</span>
             </div>
-            <div className="flex gap-1 h-2">
+            <div className="flex gap-2">
                 {[1,2,3,4,5].map(step => (
-                    <div
+                    <button
                         key={step}
-                        className={`flex-1 rounded-sm cursor-pointer transition-colors ${step <= config.difficulty ? 'bg-emerald-500' : 'bg-gray-700'}`}
+                        className={`flex-1 h-10 rounded-lg cursor-pointer transition-colors font-medium text-sm ${step <= config.difficulty ? 'bg-emerald-500 text-white' : 'bg-gray-700 text-gray-400 hover:bg-gray-600'}`}
                         onClick={() => handleChange('difficulty', step)}
-                    />
+                    >
+                        {step}
+                    </button>
                 ))}
             </div>
             <p className="text-xs text-gray-500 mt-1">
@@ -180,10 +204,10 @@ const MazeControls: React.FC<MazeControlsProps> = ({
             </p>
           </div>
 
-          {/* Entry Wedge Cutout */}
+          {/* Access Wedge */}
           <div className="space-y-2 pt-2 border-t border-gray-700/50">
              <div className="flex items-center justify-between">
-                <label className="text-sm font-medium text-gray-300">Entry Wedge Cutout</label>
+                <label className="text-sm font-medium text-gray-300">Access Wedge</label>
              </div>
              <button
                 onClick={() => handleChange('showEntryWedge', !config.showEntryWedge)}
@@ -227,14 +251,6 @@ const MazeControls: React.FC<MazeControlsProps> = ({
 
           <div className="mt-auto flex flex-col gap-3 pt-4 border-t border-gray-700">
             <button
-                onClick={onToggleSolution}
-                className={`flex items-center justify-center gap-2 w-full py-2.5 rounded-lg transition-colors font-medium border ${showSolution ? 'bg-emerald-900/40 border-emerald-500/50 text-emerald-400' : 'bg-gray-700/50 border-gray-600 text-gray-300 hover:bg-gray-700'}`}
-            >
-                {showSolution ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                {showSolution ? 'Hide Solution' : 'Show Solution'}
-            </button>
-
-            <button
               onClick={onRegenerate}
               className="flex items-center justify-center gap-2 w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg transition-colors font-medium border border-emerald-500 shadow-lg shadow-emerald-900/20"
             >
@@ -244,15 +260,16 @@ const MazeControls: React.FC<MazeControlsProps> = ({
           </div>
       </div>
 
-      {/* Resize Handle */}
-      <div
-        className={`absolute top-0 right-0 w-1.5 h-full cursor-col-resize hover:bg-emerald-500 transition-colors z-20 flex items-center justify-center ${isResizing ? 'bg-emerald-500' : 'bg-transparent'}`}
-        onMouseDown={startResizing}
-      >
-         {/* Visual grip indicator that appears on hover/resize */}
-         <div className={`h-8 w-1 bg-white/20 rounded-full opacity-0 group-hover:opacity-100 transition-opacity ${isResizing ? 'opacity-100' : ''}`} />
+        {/* Resize Handle - hidden on mobile */}
+        <div
+          className={`hidden md:flex absolute top-0 right-0 w-1.5 h-full cursor-col-resize hover:bg-emerald-500 transition-colors z-20 items-center justify-center ${isResizing ? 'bg-emerald-500' : 'bg-transparent'}`}
+          onMouseDown={startResizing}
+        >
+          {/* Visual grip indicator that appears on hover/resize */}
+          <div className={`h-8 w-1 bg-white/20 rounded-full opacity-0 group-hover:opacity-100 transition-opacity ${isResizing ? 'opacity-100' : ''}`} />
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 

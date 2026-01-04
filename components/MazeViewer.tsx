@@ -1,6 +1,6 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { MazeData } from '../types';
-import { Download, ZoomIn, ZoomOut, Eye, EyeOff, FileCog, Loader2, FileDown } from 'lucide-react';
+import { Download, ZoomIn, ZoomOut, Eye, EyeOff, FileCog, Loader2, FileDown, X, AlertTriangle } from 'lucide-react';
 import { createMazeOutline, generateEntryWedgePaths, EntryWedgeData } from '../lib/clipperUtils';
 
 interface MazeViewerProps {
@@ -18,7 +18,16 @@ const MazeViewer: React.FC<MazeViewerProps> = ({
   const [zoom, setZoom] = useState(1);
   const [isExporting, setIsExporting] = useState(false);
   const [exportProgress, setExportProgress] = useState(0);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const { config, pathD, solutionD } = data;
+
+  // Auto-dismiss error after 5 seconds
+  useEffect(() => {
+    if (errorMessage) {
+      const timer = setTimeout(() => setErrorMessage(null), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [errorMessage]);
   
   const padding = 20;
   const viewBoxSize = config.diameter + padding * 2;
@@ -128,7 +137,7 @@ ${wedgeSections}
 
     } catch (error: unknown) {
         const message = error instanceof Error ? error.message : "Unknown error";
-        alert(`Export failed: ${message}.`);
+        setErrorMessage(`SVG export failed: ${message}`);
     } finally {
         setIsExporting(false);
         setExportProgress(0);
@@ -194,7 +203,7 @@ ${wedgeSections}
 
     } catch (error: unknown) {
         const message = error instanceof Error ? error.message : "Unknown error";
-        alert(`Export failed: ${message}.`);
+        setErrorMessage(`DXF export failed: ${message}`);
     } finally {
         setIsExporting(false);
         setExportProgress(0);
@@ -385,6 +394,25 @@ ${wedgeSections}
             </p>
        </div>
 
+       {/* Error Toast */}
+       {errorMessage && (
+         <div className="absolute top-4 right-4 z-30 max-w-sm">
+           <div className="bg-red-900/90 backdrop-blur border border-red-700 rounded-xl p-4 shadow-xl flex items-start gap-3">
+             <AlertTriangle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
+             <div className="flex-1">
+               <p className="text-red-200 text-sm">{errorMessage}</p>
+             </div>
+             <button
+               onClick={() => setErrorMessage(null)}
+               className="text-red-400 hover:text-red-300 transition-colors"
+               aria-label="Dismiss error"
+             >
+               <X className="w-4 h-4" />
+             </button>
+           </div>
+         </div>
+       )}
+
       <div className="flex-1 flex items-center justify-center overflow-hidden p-8">
         <div 
             className="relative transition-transform duration-200 ease-out shadow-2xl rounded-full"
@@ -484,53 +512,57 @@ ${wedgeSections}
       </div>
 
       {/* Toolbar */}
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-gray-800/90 backdrop-blur border border-gray-700 p-2 rounded-2xl shadow-xl z-20">
-        <button 
+      <div className="absolute bottom-4 md:bottom-8 left-1/2 -translate-x-1/2 flex flex-wrap items-center justify-center gap-2 bg-gray-800/90 backdrop-blur border border-gray-700 p-2 rounded-2xl shadow-xl z-20 max-w-[95vw]">
+        <button
             onClick={() => setZoom(z => Math.max(0.2, z - 0.2))}
             className="p-3 hover:bg-gray-700 rounded-xl text-gray-300 transition-colors"
-            title="Zoom Out"
+            aria-label="Zoom out"
         >
             <ZoomOut className="w-5 h-5" />
         </button>
         <span className="text-sm font-mono text-gray-400 w-12 text-center">{Math.round(zoom * 100)}%</span>
-        <button 
+        <button
             onClick={() => setZoom(z => Math.min(3, z + 0.2))}
             className="p-3 hover:bg-gray-700 rounded-xl text-gray-300 transition-colors"
-            title="Zoom In"
+            aria-label="Zoom in"
         >
             <ZoomIn className="w-5 h-5" />
         </button>
-        <div className="w-px h-6 bg-gray-700 mx-2" />
-        <button 
+        <div className="w-px h-6 bg-gray-700 mx-1 hidden sm:block" />
+        <button
             onClick={onToggleSolution}
             className={`p-3 rounded-xl transition-colors ${showSolution ? 'bg-red-900/50 text-red-400' : 'hover:bg-gray-700 text-gray-300'}`}
-            title="Toggle Solution"
+            aria-label={showSolution ? "Hide solution" : "Show solution"}
+            aria-pressed={showSolution}
         >
             {showSolution ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
         </button>
-        <div className="w-px h-6 bg-gray-700 mx-2" />
+        <div className="w-px h-6 bg-gray-700 mx-1 hidden sm:block" />
         <button
             onClick={handleDownloadSVG}
-            className="px-4 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-xl font-medium transition-all flex items-center gap-2"
-            title="Download SVG with strokes (for viewing)"
+            className="px-3 py-2 sm:px-4 sm:py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-xl font-medium transition-all flex items-center gap-2 text-sm"
+            aria-label="Download SVG for viewing"
+            title="For viewing and sharing"
         >
             <Download className="w-4 h-4" />
-            SVG
+            <span className="hidden sm:inline">Preview</span>
         </button>
         <button
             onClick={handleDownloadSVGOutlined}
             disabled={isExporting}
-            className="px-4 py-3 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-800 text-white rounded-xl font-medium transition-all flex items-center gap-2"
-            title="Download SVG with outlined paths (for laser cutting)"
+            className="px-3 py-2 sm:px-4 sm:py-3 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-800 text-white rounded-xl font-medium transition-all flex items-center gap-2 text-sm"
+            aria-label="Download outlined SVG for laser cutting"
+            title="Outlined paths for laser cutting"
         >
             <FileDown className="w-4 h-4" />
-            SVG Cut
+            <span className="hidden sm:inline">Laser</span>
         </button>
         <button
             onClick={handleExportDXF}
             disabled={isExporting}
-            className="px-4 py-3 bg-emerald-600 hover:bg-emerald-500 disabled:bg-emerald-800 text-white rounded-xl font-medium transition-all shadow-lg shadow-emerald-900/20 flex items-center gap-2 min-w-[100px] justify-center"
-            title="Download DXF for CAD software"
+            className="px-3 py-2 sm:px-4 sm:py-3 bg-emerald-600 hover:bg-emerald-500 disabled:bg-emerald-800 text-white rounded-xl font-medium transition-all shadow-lg shadow-emerald-900/20 flex items-center gap-2 text-sm min-w-[80px] justify-center"
+            aria-label="Download DXF for CAD software"
+            title="For CAD software (AutoCAD, Fusion 360)"
         >
             {isExporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileCog className="w-4 h-4" />}
             {isExporting ? `${exportProgress}%` : 'DXF'}
