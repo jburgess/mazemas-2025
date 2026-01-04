@@ -1,7 +1,6 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { MazeConfig } from '../types';
 import { Settings, RefreshCw, Circle, Square, Hash, PieChart, ChevronUp, ChevronDown } from 'lucide-react';
-import { useSpring, animated } from '@react-spring/web';
 import { useDrag } from '@use-gesture/react';
 
 interface MazeControlsProps {
@@ -29,11 +28,8 @@ const MazeControls: React.FC<MazeControlsProps> = ({
   // Mobile bottom sheet state
   const [isExpanded, setIsExpanded] = useState(false);
   const [isLandscape, setIsLandscape] = useState(false);
-
-  // Ref to track slider interaction (prevents sheet collapse during slider use)
-  const sliderActiveRef = useRef(false);
-  const handleSliderStart = useCallback(() => { sliderActiveRef.current = true; }, []);
-  const handleSliderEnd = useCallback(() => { sliderActiveRef.current = false; }, []);
+  const [sheetHeight, setSheetHeight] = useState(COLLAPSED_HEIGHT);
+  const [isDragging, setIsDragging] = useState(false);
 
   // Detect landscape orientation
   useEffect(() => {
@@ -46,63 +42,54 @@ const MazeControls: React.FC<MazeControlsProps> = ({
   }, []);
 
   // Calculate expanded height in pixels (smaller in landscape)
-  const getExpandedHeight = () => {
+  const getExpandedHeight = useCallback(() => {
     if (typeof window === 'undefined') return 400;
     const heightPercent = isLandscape ? EXPANDED_HEIGHT_LANDSCAPE : EXPANDED_HEIGHT_PORTRAIT;
     return window.innerHeight * (heightPercent / 100);
-  };
+  }, [isLandscape]);
 
-  // Spring animation for mobile bottom sheet
-  const [sheetStyle, sheetApi] = useSpring(() => ({
-    height: COLLAPSED_HEIGHT,
-    config: { tension: 300, friction: 30 },
-    onChange: ({ value }) => {
-      onSheetHeightChange?.(value.height);
-    }
-  }));
-
-  // Report initial height on mount
+  // Report height changes to parent
   useEffect(() => {
-    onSheetHeightChange?.(COLLAPSED_HEIGHT);
-  }, [onSheetHeightChange]);
+    onSheetHeightChange?.(sheetHeight);
+  }, [sheetHeight, onSheetHeightChange]);
 
   // Update sheet height when orientation changes (if expanded)
   useEffect(() => {
     if (isExpanded) {
-      const newHeight = getExpandedHeight();
-      sheetApi.start({ height: newHeight });
+      setSheetHeight(getExpandedHeight());
     }
-  }, [isLandscape, isExpanded, sheetApi]);
+  }, [isLandscape, isExpanded, getExpandedHeight]);
 
   // Drag gesture for mobile bottom sheet
   const bindDrag = useDrag(
-    ({ movement: [, my], last, direction: [, dy], velocity: [, vy] }) => {
-      // Ignore drag events if a slider is being used
-      if (sliderActiveRef.current) return;
-
+    ({ movement: [, my], last, direction: [, dy], velocity: [, vy], first }) => {
       const expandedHeight = getExpandedHeight();
 
+      if (first) {
+        setIsDragging(true);
+      }
+
       if (last) {
+        setIsDragging(false);
         // On release, snap to closest position
-        const currentHeight = sheetStyle.height.get();
         const threshold = (expandedHeight - COLLAPSED_HEIGHT) / 2;
 
         // Use velocity for quick flicks
         if (Math.abs(vy) > 0.5) {
           const shouldExpand = dy < 0; // Flicking up = expand
           setIsExpanded(shouldExpand);
-          sheetApi.start({ height: shouldExpand ? expandedHeight : COLLAPSED_HEIGHT });
+          setSheetHeight(shouldExpand ? expandedHeight : COLLAPSED_HEIGHT);
         } else {
           // Snap based on position
-          const shouldExpand = currentHeight > COLLAPSED_HEIGHT + threshold;
+          const shouldExpand = sheetHeight > COLLAPSED_HEIGHT + threshold;
           setIsExpanded(shouldExpand);
-          sheetApi.start({ height: shouldExpand ? expandedHeight : COLLAPSED_HEIGHT });
+          setSheetHeight(shouldExpand ? expandedHeight : COLLAPSED_HEIGHT);
         }
       } else {
-        // During drag, update height
+        // During drag, update height immediately
         const baseHeight = isExpanded ? expandedHeight : COLLAPSED_HEIGHT;
         const newHeight = Math.max(COLLAPSED_HEIGHT, Math.min(expandedHeight, baseHeight - my));
-        sheetApi.start({ height: newHeight, immediate: true });
+        setSheetHeight(newHeight);
       }
     },
     { from: () => [0, isExpanded ? -getExpandedHeight() + COLLAPSED_HEIGHT : 0], filterTaps: true }
@@ -111,9 +98,10 @@ const MazeControls: React.FC<MazeControlsProps> = ({
   // Toggle sheet on handle tap
   const toggleSheet = useCallback(() => {
     const expandedHeight = getExpandedHeight();
-    setIsExpanded(!isExpanded);
-    sheetApi.start({ height: isExpanded ? COLLAPSED_HEIGHT : expandedHeight });
-  }, [isExpanded, sheetApi]);
+    const newExpanded = !isExpanded;
+    setIsExpanded(newExpanded);
+    setSheetHeight(newExpanded ? expandedHeight : COLLAPSED_HEIGHT);
+  }, [isExpanded, getExpandedHeight]);
 
   // Desktop resize handlers
   const startResizing = useCallback(() => {
@@ -162,12 +150,6 @@ const MazeControls: React.FC<MazeControlsProps> = ({
           step="5"
           value={config.diameter}
           onChange={(e) => handleChange('diameter', parseInt(e.target.value))}
-          onPointerDown={handleSliderStart}
-          onPointerUp={handleSliderEnd}
-          onPointerCancel={handleSliderEnd}
-          onTouchStart={handleSliderStart}
-          onTouchEnd={handleSliderEnd}
-          onTouchCancel={handleSliderEnd}
           className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-emerald-500"
           style={{ touchAction: 'none' }}
         />
@@ -190,12 +172,6 @@ const MazeControls: React.FC<MazeControlsProps> = ({
           step="1"
           value={config.corridorWidth}
           onChange={(e) => handleChange('corridorWidth', parseFloat(e.target.value))}
-          onPointerDown={handleSliderStart}
-          onPointerUp={handleSliderEnd}
-          onPointerCancel={handleSliderEnd}
-          onTouchStart={handleSliderStart}
-          onTouchEnd={handleSliderEnd}
-          onTouchCancel={handleSliderEnd}
           className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-emerald-500"
           style={{ touchAction: 'none' }}
         />
@@ -214,12 +190,6 @@ const MazeControls: React.FC<MazeControlsProps> = ({
           step="0.5"
           value={config.wallWidth}
           onChange={(e) => handleChange('wallWidth', parseFloat(e.target.value))}
-          onPointerDown={handleSliderStart}
-          onPointerUp={handleSliderEnd}
-          onPointerCancel={handleSliderEnd}
-          onTouchStart={handleSliderStart}
-          onTouchEnd={handleSliderEnd}
-          onTouchCancel={handleSliderEnd}
           className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-emerald-500"
           style={{ touchAction: 'none' }}
         />
@@ -238,12 +208,6 @@ const MazeControls: React.FC<MazeControlsProps> = ({
           step="0.5"
           value={config.holeRadius}
           onChange={(e) => handleChange('holeRadius', parseFloat(e.target.value))}
-          onPointerDown={handleSliderStart}
-          onPointerUp={handleSliderEnd}
-          onPointerCancel={handleSliderEnd}
-          onTouchStart={handleSliderStart}
-          onTouchEnd={handleSliderEnd}
-          onTouchCancel={handleSliderEnd}
           className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-emerald-500"
           style={{ touchAction: 'none' }}
         />
@@ -381,9 +345,12 @@ const MazeControls: React.FC<MazeControlsProps> = ({
       </div>
 
       {/* MOBILE: Bottom Sheet (hidden on desktop) */}
-      <animated.div
+      <div
         className="md:hidden fixed bottom-0 left-0 right-0 bg-gray-800 border-t border-gray-700 z-40 rounded-t-2xl shadow-2xl"
-        style={{ height: sheetStyle.height }}
+        style={{
+          height: sheetHeight,
+          transition: isDragging ? 'none' : 'height 0.25s ease-out'
+        }}
       >
         {/* Drag Handle Area */}
         <div
@@ -430,7 +397,7 @@ const MazeControls: React.FC<MazeControlsProps> = ({
         >
           {controlsContent}
         </div>
-      </animated.div>
+      </div>
     </>
   );
 };
