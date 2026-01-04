@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { MazeConfig } from '../types';
 import { Settings, RefreshCw, Circle, Square, Hash, PieChart, ChevronUp, ChevronDown } from 'lucide-react';
 import { useSpring, animated } from '@react-spring/web';
@@ -29,6 +29,11 @@ const MazeControls: React.FC<MazeControlsProps> = ({
   // Mobile bottom sheet state
   const [isExpanded, setIsExpanded] = useState(false);
   const [isLandscape, setIsLandscape] = useState(false);
+
+  // Ref to track slider interaction (prevents sheet collapse during slider use)
+  const sliderActiveRef = useRef(false);
+  const handleSliderStart = useCallback(() => { sliderActiveRef.current = true; }, []);
+  const handleSliderEnd = useCallback(() => { sliderActiveRef.current = false; }, []);
 
   // Detect landscape orientation
   useEffect(() => {
@@ -72,6 +77,9 @@ const MazeControls: React.FC<MazeControlsProps> = ({
   // Drag gesture for mobile bottom sheet
   const bindDrag = useDrag(
     ({ movement: [, my], last, direction: [, dy], velocity: [, vy] }) => {
+      // Ignore drag events if a slider is being used
+      if (sliderActiveRef.current) return;
+
       const expandedHeight = getExpandedHeight();
 
       if (last) {
@@ -154,8 +162,12 @@ const MazeControls: React.FC<MazeControlsProps> = ({
           step="5"
           value={config.diameter}
           onChange={(e) => handleChange('diameter', parseInt(e.target.value))}
-          onPointerDown={(e) => e.stopPropagation()}
-          onTouchStart={(e) => e.stopPropagation()}
+          onPointerDown={handleSliderStart}
+          onPointerUp={handleSliderEnd}
+          onPointerCancel={handleSliderEnd}
+          onTouchStart={handleSliderStart}
+          onTouchEnd={handleSliderEnd}
+          onTouchCancel={handleSliderEnd}
           className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-emerald-500"
           style={{ touchAction: 'none' }}
         />
@@ -178,8 +190,12 @@ const MazeControls: React.FC<MazeControlsProps> = ({
           step="1"
           value={config.corridorWidth}
           onChange={(e) => handleChange('corridorWidth', parseFloat(e.target.value))}
-          onPointerDown={(e) => e.stopPropagation()}
-          onTouchStart={(e) => e.stopPropagation()}
+          onPointerDown={handleSliderStart}
+          onPointerUp={handleSliderEnd}
+          onPointerCancel={handleSliderEnd}
+          onTouchStart={handleSliderStart}
+          onTouchEnd={handleSliderEnd}
+          onTouchCancel={handleSliderEnd}
           className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-emerald-500"
           style={{ touchAction: 'none' }}
         />
@@ -198,8 +214,12 @@ const MazeControls: React.FC<MazeControlsProps> = ({
           step="0.5"
           value={config.wallWidth}
           onChange={(e) => handleChange('wallWidth', parseFloat(e.target.value))}
-          onPointerDown={(e) => e.stopPropagation()}
-          onTouchStart={(e) => e.stopPropagation()}
+          onPointerDown={handleSliderStart}
+          onPointerUp={handleSliderEnd}
+          onPointerCancel={handleSliderEnd}
+          onTouchStart={handleSliderStart}
+          onTouchEnd={handleSliderEnd}
+          onTouchCancel={handleSliderEnd}
           className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-emerald-500"
           style={{ touchAction: 'none' }}
         />
@@ -218,8 +238,12 @@ const MazeControls: React.FC<MazeControlsProps> = ({
           step="0.5"
           value={config.holeRadius}
           onChange={(e) => handleChange('holeRadius', parseFloat(e.target.value))}
-          onPointerDown={(e) => e.stopPropagation()}
-          onTouchStart={(e) => e.stopPropagation()}
+          onPointerDown={handleSliderStart}
+          onPointerUp={handleSliderEnd}
+          onPointerCancel={handleSliderEnd}
+          onTouchStart={handleSliderStart}
+          onTouchEnd={handleSliderEnd}
+          onTouchCancel={handleSliderEnd}
           className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-emerald-500"
           style={{ touchAction: 'none' }}
         />
@@ -403,8 +427,6 @@ const MazeControls: React.FC<MazeControlsProps> = ({
         <div
           className="overflow-y-auto px-4 pb-4 flex flex-col gap-4"
           style={{ height: isExpanded ? 'calc(100% - 60px)' : 'calc(100% - 100px)', touchAction: 'pan-y' }}
-          onPointerDown={(e) => e.stopPropagation()}
-          onTouchStart={(e) => e.stopPropagation()}
         >
           {controlsContent}
         </div>
