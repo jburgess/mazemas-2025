@@ -625,7 +625,7 @@ ${wedgeSections}
 
       {/* Toolbar */}
       <div
-        className="absolute left-1/2 -translate-x-1/2 flex items-center justify-center gap-2 bg-gray-800/90 backdrop-blur border border-gray-700 p-2 rounded-2xl z-20"
+        className="absolute left-1/2 -translate-x-1/2 flex items-center justify-center gap-2 bg-gray-800/90 backdrop-blur border border-gray-700 p-2 rounded-2xl z-50"
         style={{ bottom: isMobile ? mobileBottomOffset + 16 : 32 }}
       >
         {/* DESKTOP: Full toolbar */}

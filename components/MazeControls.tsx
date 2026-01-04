@@ -370,7 +370,7 @@ const MazeControls: React.FC<MazeControlsProps> = ({
         {/* Scrollable Content */}
         <div
           className="overflow-y-auto px-4 pb-4 flex flex-col gap-4"
-          style={{ height: 'calc(100% - 56px)' }}
+          style={{ height: 'calc(100% - 56px)', touchAction: 'pan-y' }}
         >
           {controlsContent}
         </div>
