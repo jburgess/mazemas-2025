@@ -82,10 +82,10 @@ const MazeControls: React.FC<MazeControlsProps> = ({
             </div>
           </div>
 
-          {/* Puck Size / Corridor Width */}
+          {/* Magnet Size / Corridor Width */}
           <div className="space-y-2">
             <div className="flex justify-between">
-              <label className="text-sm font-medium text-gray-300">Puck Size (Corridor)</label>
+              <label className="text-sm font-medium text-gray-300">Magnet Size (Corridor)</label>
               <span className="text-sm text-emerald-400">{config.corridorWidth}mm</span>
             </div>
             <input
