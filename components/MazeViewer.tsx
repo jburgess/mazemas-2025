@@ -484,27 +484,20 @@ ${wedgeSections}
 
   return (
     <div className="flex-1 h-full relative bg-gray-950 flex flex-col">
-       <div className="absolute top-4 left-4 z-10 bg-gray-900/80 backdrop-blur-sm p-4 rounded-xl border border-gray-700 max-w-md pointer-events-none select-none">
-            <h1 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400 hidden md:block">
+       {/* Desktop: Full info overlay */}
+       <div className="hidden md:block absolute top-4 left-4 z-10 bg-gray-900/80 backdrop-blur-sm p-4 rounded-xl border border-gray-700 max-w-md pointer-events-none select-none">
+            <h1 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400">
                 Maze MAS 2025
             </h1>
-            {/* Desktop: compact info */}
-            <p className="text-gray-400 text-sm mt-1 hidden md:block">
+            <p className="text-gray-400 text-sm mt-1">
                 <span className="font-mono">{config.diameter}mm</span> Ø • Difficulty <span className="font-mono">{config.difficulty}</span> • Seed <span className="font-mono">{config.seed}</span>
             </p>
-            {/* Mobile: show key values prominently */}
-            <div className="md:hidden grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
-                <div className="text-gray-400">Diameter</div>
-                <div className="font-mono text-emerald-400 text-right">{config.diameter}mm</div>
-                <div className="text-gray-400">Track</div>
-                <div className="font-mono text-emerald-400 text-right">{config.corridorWidth}mm</div>
-                <div className="text-gray-400">Wall</div>
-                <div className="font-mono text-emerald-400 text-right">{config.wallWidth}mm</div>
-                <div className="text-gray-400">Hole</div>
-                <div className="font-mono text-emerald-400 text-right">{config.holeRadius}mm</div>
-                <div className="text-gray-400">Difficulty</div>
-                <div className="font-mono text-emerald-400 text-right">{config.difficulty}/5</div>
-            </div>
+       </div>
+
+       {/* Mobile: Minimal seed badge */}
+       <div className="md:hidden absolute top-4 left-4 z-10 bg-gray-900/80 backdrop-blur-sm px-3 py-2 rounded-lg border border-gray-700 pointer-events-none select-none">
+            <span className="text-gray-400 text-xs">Seed </span>
+            <span className="font-mono text-emerald-400 text-sm">{config.seed}</span>
        </div>
 
        {/* Error Toast */}

@@ -13,7 +13,8 @@ interface MazeControlsProps {
 
 // Bottom sheet snap points
 const COLLAPSED_HEIGHT = 72; // Just the handle + peek at title
-const EXPANDED_HEIGHT_VH = 65; // 65% of viewport height
+const EXPANDED_HEIGHT_PORTRAIT = 65; // 65% in portrait
+const EXPANDED_HEIGHT_LANDSCAPE = 50; // 50% in landscape (more maze visible)
 
 const MazeControls: React.FC<MazeControlsProps> = ({
     config,
@@ -27,9 +28,24 @@ const MazeControls: React.FC<MazeControlsProps> = ({
 
   // Mobile bottom sheet state
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isLandscape, setIsLandscape] = useState(false);
 
-  // Calculate expanded height in pixels
-  const getExpandedHeight = () => typeof window !== 'undefined' ? window.innerHeight * (EXPANDED_HEIGHT_VH / 100) : 400;
+  // Detect landscape orientation
+  useEffect(() => {
+    const checkOrientation = () => {
+      setIsLandscape(window.innerWidth > window.innerHeight);
+    };
+    checkOrientation();
+    window.addEventListener('resize', checkOrientation);
+    return () => window.removeEventListener('resize', checkOrientation);
+  }, []);
+
+  // Calculate expanded height in pixels (smaller in landscape)
+  const getExpandedHeight = () => {
+    if (typeof window === 'undefined') return 400;
+    const heightPercent = isLandscape ? EXPANDED_HEIGHT_LANDSCAPE : EXPANDED_HEIGHT_PORTRAIT;
+    return window.innerHeight * (heightPercent / 100);
+  };
 
   // Spring animation for mobile bottom sheet
   const [sheetStyle, sheetApi] = useSpring(() => ({
@@ -44,6 +60,14 @@ const MazeControls: React.FC<MazeControlsProps> = ({
   useEffect(() => {
     onSheetHeightChange?.(COLLAPSED_HEIGHT);
   }, [onSheetHeightChange]);
+
+  // Update sheet height when orientation changes (if expanded)
+  useEffect(() => {
+    if (isExpanded) {
+      const newHeight = getExpandedHeight();
+      sheetApi.start({ height: newHeight });
+    }
+  }, [isLandscape, isExpanded, sheetApi]);
 
   // Drag gesture for mobile bottom sheet
   const bindDrag = useDrag(
