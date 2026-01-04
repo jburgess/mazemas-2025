@@ -55,7 +55,7 @@ const MazeControls: React.FC<MazeControlsProps> = ({
       {/* Mobile Menu Button */}
       <button
         onClick={onToggleMenu}
-        className="md:hidden fixed top-4 left-4 z-50 p-3 bg-gray-800 border border-gray-700 rounded-lg text-white shadow-lg"
+        className="md:hidden fixed top-4 left-4 z-50 p-3 bg-gray-800 border border-gray-700 rounded-lg text-white"
         aria-label={isOpen ? "Close menu" : "Open menu"}
       >
         {isOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -70,7 +70,7 @@ const MazeControls: React.FC<MazeControlsProps> = ({
       )}
 
       <div
-        className={`bg-gray-800 flex flex-col h-full border-r border-gray-700 shadow-2xl z-40 flex-shrink-0 group
+        className={`bg-gray-800 flex flex-col h-full border-r border-gray-700 z-40 flex-shrink-0 group
           fixed md:relative
           transition-transform duration-300 ease-in-out
           ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
@@ -87,7 +87,7 @@ const MazeControls: React.FC<MazeControlsProps> = ({
           <div className="space-y-2">
             <div className="flex justify-between">
               <label className="text-sm font-medium text-gray-300">Total Diameter</label>
-              <span className="text-sm text-emerald-400">{config.diameter}mm</span>
+              <span className="text-sm font-mono text-emerald-400">{config.diameter}mm</span>
             </div>
             <input
               type="range"
@@ -98,7 +98,7 @@ const MazeControls: React.FC<MazeControlsProps> = ({
               onChange={(e) => handleChange('diameter', parseInt(e.target.value))}
               className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-emerald-500"
             />
-            <div className="flex justify-between text-xs text-gray-500 px-1">
+            <div className="flex justify-between text-xs font-mono text-gray-500 px-1">
                 <span>200mm</span>
                 <span>400mm</span>
             </div>
@@ -108,7 +108,7 @@ const MazeControls: React.FC<MazeControlsProps> = ({
           <div className="space-y-2">
             <div className="flex justify-between">
               <label className="text-sm font-medium text-gray-300">Track Width</label>
-              <span className="text-sm text-emerald-400">{config.corridorWidth}mm</span>
+              <span className="text-sm font-mono text-emerald-400">{config.corridorWidth}mm</span>
             </div>
             <input
               type="range"
@@ -125,7 +125,7 @@ const MazeControls: React.FC<MazeControlsProps> = ({
           <div className="space-y-2">
             <div className="flex justify-between">
               <label className="text-sm font-medium text-gray-300">Min. Wall Thickness</label>
-              <span className="text-sm text-emerald-400">{config.wallWidth}mm</span>
+              <span className="text-sm font-mono text-emerald-400">{config.wallWidth}mm</span>
             </div>
             <input
               type="range"
@@ -142,7 +142,7 @@ const MazeControls: React.FC<MazeControlsProps> = ({
           <div className="space-y-2">
             <div className="flex justify-between">
               <label className="text-sm font-medium text-gray-300">Hole Size</label>
-              <span className="text-sm text-emerald-400">{config.holeRadius}mm</span>
+              <span className="text-sm font-mono text-emerald-400">{config.holeRadius}mm</span>
             </div>
             <input
               type="range"
@@ -162,13 +162,13 @@ const MazeControls: React.FC<MazeControlsProps> = ({
           <div className="space-y-2">
             <div className="flex justify-between">
               <label className="text-sm font-medium text-gray-300">Difficulty</label>
-              <span className="text-sm text-emerald-400">{config.difficulty}/5</span>
+              <span className="text-sm font-mono text-emerald-400">{config.difficulty}/5</span>
             </div>
             <div className="flex gap-2">
                 {[1,2,3,4,5].map(step => (
                     <button
                         key={step}
-                        className={`flex-1 h-10 rounded-lg cursor-pointer transition-colors font-medium text-sm ${step <= config.difficulty ? 'bg-emerald-500 text-white' : 'bg-gray-700 text-gray-400 hover:bg-gray-600'}`}
+                        className={`flex-1 h-10 rounded-lg cursor-pointer transition-colors font-mono font-medium text-sm ${step <= config.difficulty ? 'bg-emerald-500 text-white' : 'bg-gray-700 text-gray-400 hover:bg-gray-600'}`}
                         onClick={() => handleChange('difficulty', step)}
                     >
                         {step}
@@ -239,7 +239,7 @@ const MazeControls: React.FC<MazeControlsProps> = ({
                     type="number"
                     value={Math.floor(config.seed)}
                     onChange={(e) => handleChange('seed', parseInt(e.target.value) || 0)}
-                    className="w-full bg-gray-700/50 border border-gray-600 rounded-lg pl-9 pr-3 py-2 text-sm text-emerald-400 focus:outline-none focus:border-emerald-500 transition-colors placeholder-gray-500"
+                    className="w-full bg-gray-700/50 border border-gray-600 rounded-lg pl-9 pr-3 py-2 text-sm font-mono text-emerald-400 focus:outline-none focus:border-emerald-500 transition-colors placeholder-gray-500"
                     placeholder="Enter seed"
                 />
              </div>
@@ -252,7 +252,7 @@ const MazeControls: React.FC<MazeControlsProps> = ({
           <div className="mt-auto flex flex-col gap-3 pt-4 border-t border-gray-700">
             <button
               onClick={onRegenerate}
-              className="flex items-center justify-center gap-2 w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg transition-colors font-medium border border-emerald-500 shadow-lg shadow-emerald-900/20"
+              className="flex items-center justify-center gap-2 w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg transition-colors font-medium border border-emerald-500"
             >
               <RefreshCw className="w-4 h-4" />
               Regenerate

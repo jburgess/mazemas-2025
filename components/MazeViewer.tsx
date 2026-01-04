@@ -390,14 +390,14 @@ ${wedgeSections}
                 Maze MAS 2025
             </h1>
             <p className="text-gray-400 text-sm mt-1">
-                {config.diameter}mm Ø • Difficulty {config.difficulty} • Seed {config.seed}
+                <span className="font-mono">{config.diameter}mm</span> Ø • Difficulty <span className="font-mono">{config.difficulty}</span> • Seed <span className="font-mono">{config.seed}</span>
             </p>
        </div>
 
        {/* Error Toast */}
        {errorMessage && (
          <div className="absolute top-4 right-4 z-30 max-w-sm">
-           <div className="bg-red-900/90 backdrop-blur border border-red-700 rounded-xl p-4 shadow-xl flex items-start gap-3">
+           <div className="bg-red-900/90 backdrop-blur border border-red-700 rounded-xl p-4 flex items-start gap-3">
              <AlertTriangle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
              <div className="flex-1">
                <p className="text-red-200 text-sm">{errorMessage}</p>
@@ -415,7 +415,7 @@ ${wedgeSections}
 
       <div className="flex-1 flex items-center justify-center overflow-hidden p-8">
         <div 
-            className="relative transition-transform duration-200 ease-out shadow-2xl rounded-full"
+            className="relative transition-transform duration-200 ease-out rounded-full"
             style={{ 
                 transform: `scale(${zoom})`,
                 width: `${config.diameter}mm`,
@@ -428,7 +428,7 @@ ${wedgeSections}
             height="100%"
             viewBox={`${-halfView} ${-halfView} ${viewBoxSize} ${viewBoxSize}`}
             xmlns="http://www.w3.org/2000/svg"
-            className="w-full h-full drop-shadow-2xl"
+            className="w-full h-full"
           >
             {/* 1. Base Disk (The Material) */}
             <circle 
@@ -512,7 +512,7 @@ ${wedgeSections}
       </div>
 
       {/* Toolbar */}
-      <div className="absolute bottom-4 md:bottom-8 left-1/2 -translate-x-1/2 flex flex-wrap items-center justify-center gap-2 bg-gray-800/90 backdrop-blur border border-gray-700 p-2 rounded-2xl shadow-xl z-20 max-w-[95vw]">
+      <div className="absolute bottom-4 md:bottom-8 left-1/2 -translate-x-1/2 flex flex-wrap items-center justify-center gap-2 bg-gray-800/90 backdrop-blur border border-gray-700 p-2 rounded-2xl z-20 max-w-[95vw]">
         <button
             onClick={() => setZoom(z => Math.max(0.2, z - 0.2))}
             className="p-3 hover:bg-gray-700 rounded-xl text-gray-300 transition-colors"
@@ -560,12 +560,12 @@ ${wedgeSections}
         <button
             onClick={handleExportDXF}
             disabled={isExporting}
-            className="px-3 py-2 sm:px-4 sm:py-3 bg-emerald-600 hover:bg-emerald-500 disabled:bg-emerald-800 text-white rounded-xl font-medium transition-all shadow-lg shadow-emerald-900/20 flex items-center gap-2 text-sm min-w-[80px] justify-center"
+            className="px-3 py-2 sm:px-4 sm:py-3 bg-emerald-600 hover:bg-emerald-500 disabled:bg-emerald-800 text-white rounded-xl font-medium transition-all flex items-center gap-2 text-sm min-w-[80px] justify-center"
             aria-label="Download DXF for CAD software"
             title="For CAD software (AutoCAD, Fusion 360)"
         >
             {isExporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileCog className="w-4 h-4" />}
-            {isExporting ? `${exportProgress}%` : 'DXF'}
+            {isExporting ? <span className="font-mono">{exportProgress}%</span> : 'DXF'}
         </button>
       </div>
     </div>
