@@ -12,7 +12,7 @@ interface MazeControlsProps {
 }
 
 // Bottom sheet snap points
-const COLLAPSED_HEIGHT = 72; // Just the handle + peek at title
+const COLLAPSED_HEIGHT = 100; // Handle + header + peek preview
 const EXPANDED_HEIGHT_PORTRAIT = 65; // 65% in portrait
 const EXPANDED_HEIGHT_LANDSCAPE = 50; // 50% in landscape (more maze visible)
 
@@ -155,6 +155,7 @@ const MazeControls: React.FC<MazeControlsProps> = ({
           value={config.diameter}
           onChange={(e) => handleChange('diameter', parseInt(e.target.value))}
           className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-emerald-500"
+          style={{ touchAction: 'manipulation' }}
         />
         <div className="flex justify-between text-xs font-mono text-gray-500 px-1">
           <span>200mm</span>
@@ -176,6 +177,7 @@ const MazeControls: React.FC<MazeControlsProps> = ({
           value={config.corridorWidth}
           onChange={(e) => handleChange('corridorWidth', parseFloat(e.target.value))}
           className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-emerald-500"
+          style={{ touchAction: 'manipulation' }}
         />
       </div>
 
@@ -193,6 +195,7 @@ const MazeControls: React.FC<MazeControlsProps> = ({
           value={config.wallWidth}
           onChange={(e) => handleChange('wallWidth', parseFloat(e.target.value))}
           className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-emerald-500"
+          style={{ touchAction: 'manipulation' }}
         />
       </div>
 
@@ -210,6 +213,7 @@ const MazeControls: React.FC<MazeControlsProps> = ({
           value={config.holeRadius}
           onChange={(e) => handleChange('holeRadius', parseFloat(e.target.value))}
           className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-emerald-500"
+          style={{ touchAction: 'manipulation' }}
         />
         <p className="text-xs text-gray-500">
           Size of the center goal hole and entry hole.
@@ -346,31 +350,51 @@ const MazeControls: React.FC<MazeControlsProps> = ({
 
       {/* MOBILE: Bottom Sheet (hidden on desktop) */}
       <animated.div
-        className="md:hidden fixed bottom-0 left-0 right-0 bg-gray-800 border-t border-gray-700 z-40 rounded-t-2xl"
+        className="md:hidden fixed bottom-0 left-0 right-0 bg-gray-800 border-t border-gray-700 z-40 rounded-t-2xl shadow-2xl"
         style={{ height: sheetStyle.height }}
       >
-        {/* Drag Handle */}
+        {/* Drag Handle Area */}
         <div
           {...bindDrag()}
           onClick={toggleSheet}
-          className="flex flex-col items-center pt-3 pb-2 cursor-grab active:cursor-grabbing touch-none"
+          className="cursor-grab active:cursor-grabbing touch-none"
         >
-          <div className="w-10 h-1 bg-gray-600 rounded-full mb-2" />
-          <div className="flex items-center gap-2 text-gray-300">
-            <Settings className="w-4 h-4 text-emerald-400" />
-            <span className="text-sm font-medium">Settings</span>
-            {isExpanded ? (
-              <ChevronDown className="w-4 h-4" />
-            ) : (
-              <ChevronUp className="w-4 h-4" />
-            )}
+          {/* Grab Handle Pill - wider and more prominent */}
+          <div className="flex justify-center pt-3 pb-1">
+            <div className="w-12 h-1.5 bg-gray-500 rounded-full" />
           </div>
+
+          {/* Header with chevron */}
+          <div className="flex items-center justify-between px-4 py-2">
+            <div className="flex items-center gap-2">
+              <Settings className="w-4 h-4 text-emerald-400" />
+              <span className="text-sm font-medium text-gray-300">Settings</span>
+            </div>
+            <div className="flex items-center gap-1 text-gray-400">
+              <span className="text-xs">{isExpanded ? 'Collapse' : 'Expand'}</span>
+              {isExpanded ? (
+                <ChevronDown className="w-4 h-4" />
+              ) : (
+                <ChevronUp className="w-4 h-4" />
+              )}
+            </div>
+          </div>
+
+          {/* Peek Preview - shows first control when collapsed */}
+          {!isExpanded && (
+            <div className="px-4 pb-2 border-t border-gray-700/50 pt-2">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-gray-400">Diameter</span>
+                <span className="font-mono text-emerald-400">{config.diameter}mm</span>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Scrollable Content */}
         <div
           className="overflow-y-auto px-4 pb-4 flex flex-col gap-4"
-          style={{ height: 'calc(100% - 56px)', touchAction: 'pan-y' }}
+          style={{ height: isExpanded ? 'calc(100% - 60px)' : 'calc(100% - 100px)', touchAction: 'pan-y' }}
         >
           {controlsContent}
         </div>

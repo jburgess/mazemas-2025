@@ -494,10 +494,63 @@ ${wedgeSections}
             </p>
        </div>
 
-       {/* Mobile: Minimal seed badge */}
-       <div className="md:hidden absolute top-4 left-4 z-10 bg-gray-900/80 backdrop-blur-sm px-3 py-2 rounded-lg border border-gray-700 pointer-events-none select-none">
-            <span className="text-gray-400 text-xs">Seed </span>
-            <span className="font-mono text-emerald-400 text-sm">{config.seed}</span>
+       {/* Mobile: Top bar with Eye + Seed + Share */}
+       <div className="md:hidden absolute top-4 left-4 right-4 z-10 bg-gray-900/80 backdrop-blur-sm rounded-xl border border-gray-700 flex items-center justify-between px-2 py-1.5">
+            {/* Left: Eye toggle */}
+            <button
+                onClick={onToggleSolution}
+                className={`p-2 rounded-lg transition-colors ${showSolution ? 'bg-red-900/50 text-red-400' : 'hover:bg-gray-700/50 text-gray-300'}`}
+                aria-label={showSolution ? "Hide solution" : "Show solution"}
+            >
+                {showSolution ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+            </button>
+
+            {/* Center: Seed badge */}
+            <div className="select-none">
+                <span className="text-gray-400 text-xs">Seed </span>
+                <span className="font-mono text-emerald-400 text-sm">{config.seed}</span>
+            </div>
+
+            {/* Right: Share dropdown */}
+            <div className="relative">
+                <button
+                    onClick={() => setShowExportMenu(!showExportMenu)}
+                    className={`p-2 rounded-lg transition-colors ${showExportMenu ? 'bg-emerald-900/50 text-emerald-400' : 'hover:bg-gray-700/50 text-gray-300'}`}
+                    aria-label="Export options"
+                    aria-expanded={showExportMenu}
+                >
+                    <Share2 className="w-5 h-5" />
+                </button>
+
+                {/* Export dropdown menu */}
+                {showExportMenu && (
+                    <div className="absolute top-full right-0 mt-2 bg-gray-800 border border-gray-700 rounded-xl p-2 min-w-[160px] flex flex-col gap-1 z-20">
+                        <button
+                            onClick={() => { handleDownloadSVG(); setShowExportMenu(false); }}
+                            className="flex items-center gap-3 px-3 py-2 hover:bg-gray-700 rounded-lg text-white text-sm w-full text-left"
+                        >
+                            <Download className="w-4 h-4 text-gray-400" />
+                            Preview SVG
+                        </button>
+                        <button
+                            onClick={() => { handleDownloadSVGOutlined(); setShowExportMenu(false); }}
+                            disabled={isExporting}
+                            className="flex items-center gap-3 px-3 py-2 hover:bg-gray-700 disabled:opacity-50 rounded-lg text-white text-sm w-full text-left"
+                        >
+                            <FileDown className="w-4 h-4 text-gray-400" />
+                            Laser SVG
+                        </button>
+                        <button
+                            onClick={() => { handleExportDXF(); setShowExportMenu(false); }}
+                            disabled={isExporting}
+                            className="flex items-center gap-3 px-3 py-2 hover:bg-gray-700 disabled:opacity-50 rounded-lg text-emerald-400 text-sm w-full text-left"
+                        >
+                            {isExporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileCog className="w-4 h-4" />}
+                            DXF (CAD)
+                        </button>
+                    </div>
+                )}
+            </div>
        </div>
 
        {/* Error Toast */}
@@ -623,130 +676,72 @@ ${wedgeSections}
         </animated.div>
       </div>
 
-      {/* Toolbar */}
+      {/* Toolbar (Desktop only - mobile uses top bar) */}
       <div
-        className="absolute left-1/2 -translate-x-1/2 flex items-center justify-center gap-2 bg-gray-800/90 backdrop-blur border border-gray-700 p-2 rounded-2xl z-50"
-        style={{ bottom: isMobile ? mobileBottomOffset + 16 : 32 }}
+        className="hidden md:flex absolute left-1/2 -translate-x-1/2 items-center justify-center gap-2 bg-gray-800/90 backdrop-blur border border-gray-700 p-2 rounded-2xl z-50"
+        style={{ bottom: 32 }}
       >
-        {/* DESKTOP: Full toolbar */}
-        {!isMobile && (
-          <>
-            <button
-                onClick={handleZoomOut}
-                className="p-3 hover:bg-gray-700 rounded-xl text-gray-300 transition-colors"
-                aria-label="Zoom out"
-            >
-                <ZoomOut className="w-5 h-5" />
-            </button>
-            <button
-                onClick={handleResetView}
-                className="p-2 hover:bg-gray-700 rounded-lg text-gray-400 transition-colors"
-                aria-label="Reset view"
-                title="Reset to fit"
-            >
-                <RotateCcw className="w-4 h-4" />
-            </button>
-            <button
-                onClick={handleZoomIn}
-                className="p-3 hover:bg-gray-700 rounded-xl text-gray-300 transition-colors"
-                aria-label="Zoom in"
-            >
-                <ZoomIn className="w-5 h-5" />
-            </button>
-            <div className="w-px h-6 bg-gray-700 mx-1" />
-            <button
-                onClick={onToggleSolution}
-                className={`p-3 rounded-xl transition-colors ${showSolution ? 'bg-red-900/50 text-red-400' : 'hover:bg-gray-700 text-gray-300'}`}
-                aria-label={showSolution ? "Hide solution" : "Show solution"}
-                aria-pressed={showSolution}
-            >
-                {showSolution ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-            </button>
-            <div className="w-px h-6 bg-gray-700 mx-1" />
-            <button
-                onClick={handleDownloadSVG}
-                className="px-4 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-xl font-medium transition-all flex items-center gap-2 text-sm"
-                aria-label="Download SVG for viewing"
-                title="For viewing and sharing"
-            >
-                <Download className="w-4 h-4" />
-                Preview
-            </button>
-            <button
-                onClick={handleDownloadSVGOutlined}
-                disabled={isExporting}
-                className="px-4 py-3 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-800 text-white rounded-xl font-medium transition-all flex items-center gap-2 text-sm"
-                aria-label="Download outlined SVG for laser cutting"
-                title="Outlined paths for laser cutting"
-            >
-                <FileDown className="w-4 h-4" />
-                Laser
-            </button>
-            <button
-                onClick={handleExportDXF}
-                disabled={isExporting}
-                className="px-4 py-3 bg-emerald-600 hover:bg-emerald-500 disabled:bg-emerald-800 text-white rounded-xl font-medium transition-all flex items-center gap-2 text-sm min-w-[80px] justify-center"
-                aria-label="Download DXF for CAD software"
-                title="For CAD software (AutoCAD, Fusion 360)"
-            >
-                {isExporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileCog className="w-4 h-4" />}
-                {isExporting ? <span className="font-mono">{exportProgress}%</span> : 'DXF'}
-            </button>
-          </>
-        )}
-
-        {/* MOBILE: Simplified toolbar */}
-        {isMobile && (
-          <>
-            <button
-                onClick={onToggleSolution}
-                className={`p-3 rounded-xl transition-colors ${showSolution ? 'bg-red-900/50 text-red-400' : 'hover:bg-gray-700 text-gray-300'}`}
-                aria-label={showSolution ? "Hide solution" : "Show solution"}
-                aria-pressed={showSolution}
-            >
-                {showSolution ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-            </button>
-            <div className="relative">
-              <button
-                  onClick={() => setShowExportMenu(!showExportMenu)}
-                  className={`p-3 rounded-xl transition-colors ${showExportMenu ? 'bg-emerald-900/50 text-emerald-400' : 'hover:bg-gray-700 text-gray-300'}`}
-                  aria-label="Export options"
-                  aria-expanded={showExportMenu}
-              >
-                  <Share2 className="w-5 h-5" />
-              </button>
-
-              {/* Export dropdown menu */}
-              {showExportMenu && (
-                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-gray-800 border border-gray-700 rounded-xl p-2 min-w-[160px] flex flex-col gap-1">
-                  <button
-                      onClick={() => { handleDownloadSVG(); setShowExportMenu(false); }}
-                      className="flex items-center gap-3 px-3 py-2 hover:bg-gray-700 rounded-lg text-white text-sm w-full text-left"
-                  >
-                      <Download className="w-4 h-4 text-gray-400" />
-                      Preview SVG
-                  </button>
-                  <button
-                      onClick={() => { handleDownloadSVGOutlined(); setShowExportMenu(false); }}
-                      disabled={isExporting}
-                      className="flex items-center gap-3 px-3 py-2 hover:bg-gray-700 disabled:opacity-50 rounded-lg text-white text-sm w-full text-left"
-                  >
-                      <FileDown className="w-4 h-4 text-gray-400" />
-                      Laser SVG
-                  </button>
-                  <button
-                      onClick={() => { handleExportDXF(); setShowExportMenu(false); }}
-                      disabled={isExporting}
-                      className="flex items-center gap-3 px-3 py-2 hover:bg-gray-700 disabled:opacity-50 rounded-lg text-emerald-400 text-sm w-full text-left"
-                  >
-                      {isExporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileCog className="w-4 h-4" />}
-                      DXF (CAD)
-                  </button>
-                </div>
-              )}
-            </div>
-          </>
-        )}
+        <button
+            onClick={handleZoomOut}
+            className="p-3 hover:bg-gray-700 rounded-xl text-gray-300 transition-colors"
+            aria-label="Zoom out"
+        >
+            <ZoomOut className="w-5 h-5" />
+        </button>
+        <button
+            onClick={handleResetView}
+            className="p-2 hover:bg-gray-700 rounded-lg text-gray-400 transition-colors"
+            aria-label="Reset view"
+            title="Reset to fit"
+        >
+            <RotateCcw className="w-4 h-4" />
+        </button>
+        <button
+            onClick={handleZoomIn}
+            className="p-3 hover:bg-gray-700 rounded-xl text-gray-300 transition-colors"
+            aria-label="Zoom in"
+        >
+            <ZoomIn className="w-5 h-5" />
+        </button>
+        <div className="w-px h-6 bg-gray-700 mx-1" />
+        <button
+            onClick={onToggleSolution}
+            className={`p-3 rounded-xl transition-colors ${showSolution ? 'bg-red-900/50 text-red-400' : 'hover:bg-gray-700 text-gray-300'}`}
+            aria-label={showSolution ? "Hide solution" : "Show solution"}
+            aria-pressed={showSolution}
+        >
+            {showSolution ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+        </button>
+        <div className="w-px h-6 bg-gray-700 mx-1" />
+        <button
+            onClick={handleDownloadSVG}
+            className="px-4 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-xl font-medium transition-all flex items-center gap-2 text-sm"
+            aria-label="Download SVG for viewing"
+            title="For viewing and sharing"
+        >
+            <Download className="w-4 h-4" />
+            Preview
+        </button>
+        <button
+            onClick={handleDownloadSVGOutlined}
+            disabled={isExporting}
+            className="px-4 py-3 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-800 text-white rounded-xl font-medium transition-all flex items-center gap-2 text-sm"
+            aria-label="Download outlined SVG for laser cutting"
+            title="Outlined paths for laser cutting"
+        >
+            <FileDown className="w-4 h-4" />
+            Laser
+        </button>
+        <button
+            onClick={handleExportDXF}
+            disabled={isExporting}
+            className="px-4 py-3 bg-emerald-600 hover:bg-emerald-500 disabled:bg-emerald-800 text-white rounded-xl font-medium transition-all flex items-center gap-2 text-sm min-w-[80px] justify-center"
+            aria-label="Download DXF for CAD software"
+            title="For CAD software (AutoCAD, Fusion 360)"
+        >
+            {isExporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileCog className="w-4 h-4" />}
+            {isExporting ? <span className="font-mono">{exportProgress}%</span> : 'DXF'}
+        </button>
       </div>
     </div>
   );
