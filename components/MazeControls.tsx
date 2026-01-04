@@ -154,8 +154,10 @@ const MazeControls: React.FC<MazeControlsProps> = ({
           step="5"
           value={config.diameter}
           onChange={(e) => handleChange('diameter', parseInt(e.target.value))}
+          onPointerDown={(e) => e.stopPropagation()}
+          onTouchStart={(e) => e.stopPropagation()}
           className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-emerald-500"
-          style={{ touchAction: 'manipulation' }}
+          style={{ touchAction: 'none' }}
         />
         <div className="flex justify-between text-xs font-mono text-gray-500 px-1">
           <span>200mm</span>
@@ -176,8 +178,10 @@ const MazeControls: React.FC<MazeControlsProps> = ({
           step="1"
           value={config.corridorWidth}
           onChange={(e) => handleChange('corridorWidth', parseFloat(e.target.value))}
+          onPointerDown={(e) => e.stopPropagation()}
+          onTouchStart={(e) => e.stopPropagation()}
           className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-emerald-500"
-          style={{ touchAction: 'manipulation' }}
+          style={{ touchAction: 'none' }}
         />
       </div>
 
@@ -194,8 +198,10 @@ const MazeControls: React.FC<MazeControlsProps> = ({
           step="0.5"
           value={config.wallWidth}
           onChange={(e) => handleChange('wallWidth', parseFloat(e.target.value))}
+          onPointerDown={(e) => e.stopPropagation()}
+          onTouchStart={(e) => e.stopPropagation()}
           className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-emerald-500"
-          style={{ touchAction: 'manipulation' }}
+          style={{ touchAction: 'none' }}
         />
       </div>
 
@@ -212,8 +218,10 @@ const MazeControls: React.FC<MazeControlsProps> = ({
           step="0.5"
           value={config.holeRadius}
           onChange={(e) => handleChange('holeRadius', parseFloat(e.target.value))}
+          onPointerDown={(e) => e.stopPropagation()}
+          onTouchStart={(e) => e.stopPropagation()}
           className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-emerald-500"
-          style={{ touchAction: 'manipulation' }}
+          style={{ touchAction: 'none' }}
         />
         <p className="text-xs text-gray-500">
           Size of the center goal hole and entry hole.
@@ -395,6 +403,8 @@ const MazeControls: React.FC<MazeControlsProps> = ({
         <div
           className="overflow-y-auto px-4 pb-4 flex flex-col gap-4"
           style={{ height: isExpanded ? 'calc(100% - 60px)' : 'calc(100% - 100px)', touchAction: 'pan-y' }}
+          onPointerDown={(e) => e.stopPropagation()}
+          onTouchStart={(e) => e.stopPropagation()}
         >
           {controlsContent}
         </div>
