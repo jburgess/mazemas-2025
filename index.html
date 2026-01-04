@@ -2,13 +2,20 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="https://picsum.photos/32/32" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Maze MAS 2025</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <meta name="description" content="Generate circular puck mazes for laser cutting. Create unique maze puzzles with adjustable difficulty, export to DXF for 3mm acrylic." />
 
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/favicon.svg" />
+
+    <meta name="theme-color" content="#1f2937" />
+    <meta property="og:title" content="Maze MAS 2025" />
+    <meta property="og:description" content="Generate circular puck mazes for laser cutting" />
+    <meta property="og:type" content="website" />
+
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-      /* Custom scrollbar for webkit */
       ::-webkit-scrollbar {
         width: 8px;
         height: 8px;
@@ -24,7 +31,7 @@
         background: #6b7280;
       }
     </style>
-</head>
+  </head>
   <body class="bg-gray-900 text-white h-screen overflow-hidden">
     <div id="root" class="h-full w-full"></div>
     <script type="module" src="/index.tsx"></script>

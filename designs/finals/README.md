@@ -17,5 +17,5 @@ Production-ready maze designs for laser cutting. Each maze corresponds to an acr
 ## Cut Specifications
 
 - **Diameter**: 290mm
-- **Puck Size**: 14mm
+- **Magnet Size**: 14mm
 - **Min Wall**: 11mm

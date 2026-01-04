@@ -37,7 +37,7 @@ const MazeViewer: React.FC<MazeViewerProps> = ({
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `orbital_maze_${config.diameter}mm_seed${config.seed}.svg`;
+    link.download = `mazemas_${config.diameter}mm_seed${config.seed}.svg`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -118,7 +118,7 @@ ${wedgeSections}
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
-        link.download = `orbital_maze_${config.diameter}mm_seed${config.seed}_outlined.svg`;
+        link.download = `mazemas_${config.diameter}mm_seed${config.seed}_outlined.svg`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -186,7 +186,7 @@ ${wedgeSections}
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
-        link.download = `orbital_maze_${config.diameter}mm_seed${config.seed}_cut.dxf`;
+        link.download = `mazemas_${config.diameter}mm_seed${config.seed}_cut.dxf`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
