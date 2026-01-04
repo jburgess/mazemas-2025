@@ -126,9 +126,9 @@ ${wedgeSections}
 
         setExportProgress(100);
 
-    } catch (error: any) {
-        console.error("SVG Outlined Export Error:", error);
-        alert(`Export failed: ${error.message || "Unknown error"}.`);
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : "Unknown error";
+        alert(`Export failed: ${message}.`);
     } finally {
         setIsExporting(false);
         setExportProgress(0);
@@ -179,8 +179,6 @@ ${wedgeSections}
 
         setExportProgress(90);
 
-        console.log("DXF length:", dxfContent.length);
-
         // Download
         const blob = new Blob([dxfContent], { type: 'application/dxf' });
         const url = URL.createObjectURL(blob);
@@ -194,9 +192,9 @@ ${wedgeSections}
 
         setExportProgress(100);
 
-    } catch (error: any) {
-        console.error("DXF Export Error:", error);
-        alert(`Export failed: ${error.message || "Unknown error"}.`);
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : "Unknown error";
+        alert(`Export failed: ${message}.`);
     } finally {
         setIsExporting(false);
         setExportProgress(0);

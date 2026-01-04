@@ -30,7 +30,7 @@ function App() {
   useEffect(() => {
     const data = generateMaze(config);
     setMazeData(data);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- Initial load only
   }, []);
 
   const handleConfigChange = (newConfig: MazeConfig) => {

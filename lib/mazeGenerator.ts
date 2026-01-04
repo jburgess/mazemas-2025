@@ -305,22 +305,7 @@ export const generateMaze = (config: MazeConfig): MazeData => {
   // Find all leaves (degree 1) to start paths, then junctions (degree > 2)
   const allNodeIds = Array.from(adjacency.keys());
   
-  // We will simply do a DFS traversal of the tree.
-  // When we hit a branch, we end the current path and start new ones.
-  // This stitches segments together allowing stroke-linejoin to work.
-  
-  const tracePath = (startNode: MazeNode) => {
-      const stack = [startNode];
-      const seen = new Set<string>();
-      seen.add(startNode.id);
-
-      // We need a more robust way to decompose a tree into paths.
-      // Simple approach: Start at center. Recurse.
-      // If a node has multiple children, start new paths for children.
-      // If a node has 1 child, append to current path.
-  };
-
-  // Re-approach: Just basic DFS from center.
+  // DFS traversal of the tree to build path segments.
   // The path string will be a collection of "Move To... Line... Arc...".
   // To make it "Continuous" for stroke-linejoin, we need to minimize "Move To".
   // Ideally, we draw a long line, then backtrack. SVG paths don't support backtracking without lifting pen usually.
