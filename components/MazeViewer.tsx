@@ -50,30 +50,30 @@ const MazeViewer: React.FC<MazeViewerProps> = ({
       if (!containerRef.current) return;
 
       // Mobile layout constants
-      const MOBILE_TOP_BAR_HEIGHT = 64; // Top bar + margin
-      const MOBILE_PADDING = 24; // Padding around maze
+      const MOBILE_TOP_BAR_HEIGHT = 56; // Top bar height
+      const MOBILE_PADDING = 12; // Minimal padding around maze
 
       if (isMobile) {
         // On mobile, calculate available space explicitly
         const viewportHeight = window.innerHeight;
         const viewportWidth = window.innerWidth;
 
-        // Available height = viewport - top bar - bottom sheet - padding
+        // Available height = viewport - top bar - bottom sheet - small padding
         const availableHeight = viewportHeight - MOBILE_TOP_BAR_HEIGHT - mobileBottomOffset - MOBILE_PADDING;
-        // Available width = viewport - padding on both sides
+        // Available width = viewport - minimal padding
         const availableWidth = viewportWidth - (MOBILE_PADDING * 2);
 
         // Maze fits in a square constrained by the smaller dimension
         const size = Math.min(availableWidth, Math.max(100, availableHeight));
         setMazeSize(Math.max(150, size));
       } else {
-        // Desktop: use container dimensions with some padding
+        // Desktop: use container dimensions with minimal padding
         const container = containerRef.current;
         const containerWidth = container.clientWidth;
         const containerHeight = container.clientHeight;
 
-        // Use 90% of the smaller dimension
-        const availableSize = Math.min(containerWidth, containerHeight) * 0.9;
+        // Use 95% of the smaller dimension
+        const availableSize = Math.min(containerWidth, containerHeight) * 0.95;
         setMazeSize(Math.max(200, availableSize));
       }
 
@@ -596,8 +596,11 @@ ${wedgeSections}
         ref={containerRef}
         className="flex-1 flex items-center justify-center overflow-hidden touch-none"
         style={{
-          padding: isMobile ? '72px 16px 16px 16px' : 32, // Mobile: extra top padding for bar
-          paddingBottom: isMobile ? mobileBottomOffset + 16 : 32
+          // Mobile: pad top for bar, bottom for sheet - centers maze in remaining space
+          paddingTop: isMobile ? 56 : 16,
+          paddingBottom: isMobile ? mobileBottomOffset : 16,
+          paddingLeft: isMobile ? 8 : 16,
+          paddingRight: isMobile ? 8 : 16
         }}
       >
         <animated.div
