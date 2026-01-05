@@ -48,14 +48,34 @@ const MazeViewer: React.FC<MazeViewerProps> = ({
   useEffect(() => {
     const calculateFitSize = () => {
       if (!containerRef.current) return;
-      const container = containerRef.current;
-      const containerWidth = container.clientWidth;
-      // Account for mobile bottom sheet offset
-      const containerHeight = container.clientHeight - (isMobile ? mobileBottomOffset : 0);
 
-      // Calculate size to fit with padding (85% of available space)
-      const availableSize = Math.min(containerWidth, Math.max(100, containerHeight)) * 0.85;
-      setMazeSize(Math.max(200, availableSize));
+      // Mobile layout constants
+      const MOBILE_TOP_BAR_HEIGHT = 64; // Top bar + margin
+      const MOBILE_PADDING = 24; // Padding around maze
+
+      if (isMobile) {
+        // On mobile, calculate available space explicitly
+        const viewportHeight = window.innerHeight;
+        const viewportWidth = window.innerWidth;
+
+        // Available height = viewport - top bar - bottom sheet - padding
+        const availableHeight = viewportHeight - MOBILE_TOP_BAR_HEIGHT - mobileBottomOffset - MOBILE_PADDING;
+        // Available width = viewport - padding on both sides
+        const availableWidth = viewportWidth - (MOBILE_PADDING * 2);
+
+        // Maze fits in a square constrained by the smaller dimension
+        const size = Math.min(availableWidth, Math.max(100, availableHeight));
+        setMazeSize(Math.max(150, size));
+      } else {
+        // Desktop: use container dimensions with some padding
+        const container = containerRef.current;
+        const containerWidth = container.clientWidth;
+        const containerHeight = container.clientHeight;
+
+        // Use 90% of the smaller dimension
+        const availableSize = Math.min(containerWidth, containerHeight) * 0.9;
+        setMazeSize(Math.max(200, availableSize));
+      }
 
       // Reset position when resizing
       api.start({ scale: 1, x: 0, y: 0, immediate: true });
@@ -574,8 +594,11 @@ ${wedgeSections}
 
       <div
         ref={containerRef}
-        className="flex-1 flex items-center justify-center overflow-hidden p-8 touch-none"
-        style={{ paddingBottom: isMobile ? mobileBottomOffset + 32 : undefined }}
+        className="flex-1 flex items-center justify-center overflow-hidden touch-none"
+        style={{
+          padding: isMobile ? '72px 16px 16px 16px' : 32, // Mobile: extra top padding for bar
+          paddingBottom: isMobile ? mobileBottomOffset + 16 : 32
+        }}
       >
         <animated.div
             className="relative rounded-full cursor-grab active:cursor-grabbing"
